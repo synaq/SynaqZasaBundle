@@ -196,15 +196,35 @@ class ZimbraConnector
     public function getDomainId($name)
     {
         $response = $this->request('GetDomain', array(), array(
+                'domain' => array(
+                    '@attributes' => array(
+                        'by' => 'name'
+                    ),
+                    '@value' => $name,
+                )
+            ));
+
+        return $response['@attributes']['id'];
+    }
+
+    public function getDomain($name)
+    {
+        $response = $this->request('GetDomain', array(), array(
             'domain' => array(
                 '@attributes' => array(
                     'by' => 'name'
                 ),
-                '@value' => $name
+                '@value' => $name,
             )
         ));
 
-        return $response['domain']['@attributes']['id'];
+        $domain = array();
+        $domain['id'] = $response['domain']['@attributes']['id'];
+        foreach ($response['domain']['a'] as $a) {
+            $domain[$a['@attributes']['n']] = $a['@value'];
+        }
+
+        return $domain;
     }
 
     public function modifyDomain($id, $attributes)
