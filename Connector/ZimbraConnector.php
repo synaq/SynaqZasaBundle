@@ -627,4 +627,21 @@ class ZimbraConnector
 
         return $response;
     }
+
+    public function createAliasDomain($alias, $domainId)
+    {
+        $a = $this->getAArray(array('zimbraDomainType' => 'alias', 'zimbraDomainAliasTargetId' => $domainId));
+        $response = $this->request('CreateDomain', array(),
+            array(
+                'domain' => array(
+                    '@attributes' => array(
+                        'name' => $alias
+                    ),
+                    'a' => $a
+                )
+            )
+        );
+
+        return $response['domain']['@attributes']['id'];
+    }
 }

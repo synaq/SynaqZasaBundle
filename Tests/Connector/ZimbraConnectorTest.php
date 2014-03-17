@@ -499,4 +499,26 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
             )
         ), $response);
     }
+
+    public function testCreateAliasDomain()
+    {
+        if ($this->mock) {
+            $raw = $this->httpHead;
+            $raw .= "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope/\"><soap:Header><context xmlns=\"urn:zimbra\"><change token=\"19507\"/></context></soap:Header><soap:Body><CreateDomainResponse xmlns=\"urn:zimbraAdmin\"><domain id=\"69e5e6c5-fb88-4ba3-acd3-c8139379b284\" name=\"test-alias.com\"><a n=\"zimbraId\">69e5e6c5-fb88-4ba3-acd3-c8139379b284</a><a n=\"zimbraMailCatchAllAddress\">@test-alias.com</a><a n=\"zimbraDomainType\">alias</a><a n=\"zimbraDomainAliasTargetId\">d5c53785-889d-4e8e-b809-4b30c5b00ad9</a></domain></CreateDomainResponse></soap:Body></soap:Envelope>";
+            $response = new Response($raw);
+
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
+                array(
+                    $this->loginResponse,
+                    $response
+                )
+            );
+        }
+
+        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
+
+        $response = $this->connector->createAliasDomain('test-alias.com', 'test.com');
+
+        $this->assertEquals('69e5e6c5-fb88-4ba3-acd3-c8139379b284', $response);
+    }
 }
