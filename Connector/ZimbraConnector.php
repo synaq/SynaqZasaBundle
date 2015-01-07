@@ -282,6 +282,42 @@ class ZimbraConnector
         return $account;
     }
 
+    public function getAccounts($domainName)
+    {
+        $response = $this->request('GetAllAccounts', array(), array(
+            'domain' => array(
+                '@attributes' => array(
+                    'by' => 'name'
+                ),
+                '@value' => $domainName
+            )
+        ));
+
+        $accounts = array();
+        if (array_key_exists('a', $response['account'])) {
+            //single mailbox
+            $response['account'] = array($response['account']);
+        }
+        foreach ($response['account'] as $acc) {
+            $account = array();
+            foreach ($acc['a'] as $a) {
+                $key = $a['@attributes']['n'];
+                if (array_key_exists($key, $account)) {
+                    if (is_array($account[$key])) {
+                        $account[$key][] = $a['@value'];
+                    } else {
+                        $account[$key] = array($account[$key], $a['@value']);
+                    }
+                } else {
+                    $account[$key] = $a['@value'];
+                }
+            }
+            $accounts[$acc['@attributes']['name']] = $account;
+        }
+
+        return $accounts;
+    }
+
     public function deleteAccount($id)
     {
         $this->request('DeleteAccount', array('id' => $id));
