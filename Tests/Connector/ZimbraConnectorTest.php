@@ -1066,4 +1066,189 @@ XML;
         $this->assertArrayHasKey('attribute-2', $response['test-account2@test-domain.com']);
         $this->assertEquals('TRUE', $response['test-account2@test-domain.com']['attribute-2']);
     }
+
+    public function testCreateDomain()
+    {
+        if ($this->mock) {
+            $raw = $this->httpHead;
+            $raw .= <<<'XML'
+                <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+                    <soap:Header>
+                        <context xmlns="urn:zimbra"/>
+                    </soap:Header>
+                    <soap:Body>
+                        <CreateDomainResponse xmlns="urn:zimbraAdmin">
+                            <domain id="dummy-domain-id" name="dummy-domain.com"/>
+                        </CreateDomainResponse>
+                    </soap:Body>
+                </soap:Envelope>
+XML;
+
+            $response = new Response($raw);
+
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
+                array(
+                    $this->loginResponse,
+                    $response
+                )
+            );
+        }
+
+        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
+
+        $attr = array(
+            'zimbraDomainStatus' => 'active',
+            'zimbraPrefTimeZoneId' => '(GMT+02.00) Harare / Pretoria',
+            'description' => 'domain description',
+            'zimbraDomainDefaultCOSId' => 'DUMMY-COS-ID',
+            'zimbraVirtualHostname' => 'mail.dummy-domain.com',
+            'zimbraPublicServiceHostname' => 'mail.dummy-domain.com',
+        );
+        $id = $this->connector->createDomain('dummy-domain.com', $attr);
+        $this->assertEquals('dummy-domain-id', $id);
+    }
+
+    public function testCreateDl()
+    {
+        if ($this->mock) {
+            $raw = $this->httpHead;
+            $raw .= <<<'XML'
+                <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+                    <soap:Header>
+                        <context xmlns="urn:zimbra"/>
+                    </soap:Header>
+                    <soap:Body>
+                        <CreateDistributionListResponse xmlns="urn:zimbraAdmin">
+                            <dl id="dummy-dl-id" name="zimbradomainadmins@dummy-domain.com"/>
+                        </CreateDistributionListResponse>
+                    </soap:Body>
+                </soap:Envelope>
+XML;
+
+            $response = new Response($raw);
+
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
+                array(
+                    $this->loginResponse,
+                    $response
+                )
+            );
+        }
+
+        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
+        $attr = array(
+            'zimbraHideInGal'=> 'TRUE',
+            'zimbraIsAdminGroup' => 'TRUE',
+            'zimbraMailStatus' => 'disabled'
+        );
+        $views = array(
+                'accountListView',
+                'aliasListView',
+                'resourceListView',
+                'DLListView'
+        );
+        $id = $this->connector->createDl('zimbradoaminadmins@dummy-domain.com', $attr, $views);
+        $this->assertEquals('dummy-dl-id', $id);
+    }
+
+    public function testGrantRight()
+    {
+        if ($this->mock) {
+            $raw = $this->httpHead;
+            $raw .= <<<'XML'
+                <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+                    <soap:Header>
+                        <context xmlns="urn:zimbra"/>
+                    </soap:Header>
+                    <soap:Body>
+                        <GrantRightResponse xmlns="urn:zimbraAdmin"/>
+                    </soap:Body>
+                </soap:Envelope>
+XML;
+
+            $response = new Response($raw);
+
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
+                array(
+                    $this->loginResponse,
+                    $response
+                )
+            );
+        }
+
+        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
+        $this->connector->grantRight('dummy-domain.com', 'domain', 'zimbradomainadmins@dummy-domain.com', 'grp', 'getAccount', 0);
+    }
+
+    public function testCreateMailbox()
+    {
+        if ($this->mock) {
+            $raw = $this->httpHead;
+            $raw .= <<<'XML'
+                <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+                    <soap:Header>
+                        <context xmlns="urn:zimbra"/>
+                    </soap:Header>
+                    <soap:Body>
+                        <CreateAccountResponse xmlns="urn:zimbraAdmin">
+                            <account id="dummy-account-id" name="test-account@dummy-domain.com"/>
+                        </CreateAccountResponse>
+                    </soap:Body>
+                </soap:Envelope>
+XML;
+
+            $response = new Response($raw);
+
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
+                array(
+                    $this->loginResponse,
+                    $response
+                )
+            );
+        }
+
+        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
+        $attr = array(
+            'displayName' => 'Joe Schmoe',
+            'givenName' => 'Joe',
+            'sn' => 'Schmoe',
+            'zimbraPasswordMustChange' => 'TRUE',
+            'zimbraIsDelegatedAdminAccount' => 'FALSE',
+            'zimbraHideInGal' => 'FALSE',
+            'zimbraCOSId' => 'dummy-cos-id',
+            'description' => 'dummy description',
+            'company' => 'Acme Ltd'
+        );
+        $id = $this->connector->createAccount('test-account@dummy-domain.com', 'dummy-password', $attr);
+        $this->assertEquals('dummy-account-id', $id);
+    }
+
+    public function testAddDlMember()
+    {
+        if ($this->mock) {
+            $raw = $this->httpHead;
+            $raw .= <<<'XML'
+                <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+                    <soap:Header>
+                        <context xmlns="urn:zimbra"/>
+                    </soap:Header>
+                    <soap:Body>
+                        <AddDistributionListMemberResponse xmlns="urn:zimbraAdmin"/>
+                    </soap:Body>
+                </soap:Envelope>
+XML;
+
+            $response = new Response($raw);
+
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
+                array(
+                    $this->loginResponse,
+                    $response
+                )
+            );
+        }
+
+        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
+        $this->connector->addDlMember('dummy-dl-id', 'test-account@dummy-domain.com');
+    }
 }
