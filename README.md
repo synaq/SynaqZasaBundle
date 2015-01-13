@@ -6,7 +6,7 @@ This bundle uses a custom XML builder to post SOAP requests over curl.
 
 This bundle works with Zimbra 7 & 8
 
-This bundle was written to work specifically with our business model, so some functions return non-standard ouput. However, it should work with many use cases.
+This bundle was written to work specifically with our business model, so some functions return non-standard output. However, it should work with many use cases.
 
 ## Requirements
 
