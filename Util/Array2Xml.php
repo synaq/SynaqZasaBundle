@@ -70,6 +70,7 @@ class Array2Xml {
      * @param string $node_name - name of the root node to be converted
      * @param array $arr - aray to be converterd
      * @return DOMNode
+     * @throws \Exception
      */
     private static function &convert($node_name, $arr=array()) {
 
@@ -148,11 +149,11 @@ class Array2Xml {
     /*
      * Get string representation of boolean value
      */
-    private static function bool2str($v){
+    private static function bool2str($value){
         //convert boolean to text value.
-        $v = $v === true ? 'true' : $v;
-        $v = $v === false ? 'false' : $v;
-        return $v;
+        $value = $value === true ? 'true' : $value;
+        $value = $value === false ? 'false' : $value;
+        return $value;
     }
 
     /*
