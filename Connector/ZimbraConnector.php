@@ -221,7 +221,16 @@ class ZimbraConnector
         $domain = array();
         $domain['id'] = $response['domain']['@attributes']['id'];
         foreach ($response['domain']['a'] as $a) {
-            $domain[$a['@attributes']['n']] = $a['@value'];
+            $key = $a['@attributes']['n'];
+            if (array_key_exists($key, $domain)) {
+                if (is_array($domain[$key])) {
+                    $domain[$key][] = $a['@value'];
+                } else {
+                    $domain[$key] = array($domain[$key], $a['@value']);
+                }
+            } else {
+                $domain[$key] = $a['@value'];
+            }
         }
 
         return $domain;
