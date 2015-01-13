@@ -40,9 +40,9 @@ class Xml2Array {
 
     /**
      * Convert an XML to Array
-     * @param string $node_name - name of the root node to be converted
-     * @param array $arr - aray to be converterd
+     * @param string $input_xml
      * @return DOMDocument
+     * @throws Exception
      */
     public static function &createArray($input_xml) {
         $xml = self::getXMLRoot();
@@ -80,7 +80,6 @@ class Xml2Array {
                 break;
 
             case XML_ELEMENT_NODE:
-
                 // for each child node, call the covert function recursively
                 for ($i=0, $m=$node->childNodes->length; $i<$m; $i++) {
                     $child = $node->childNodes->item($i);
