@@ -60,7 +60,7 @@ class ZimbraConnector
         $this->login();
     }
 
-    private function request($request, $attributes = array(), $parameters = array(), $delegate = false)
+    private function request($request, $attributes = array(), $parameters = array(), $delegate = false, $delegateType = 'Mail')
     {
         //header
         if ($delegate) {
@@ -103,7 +103,7 @@ class ZimbraConnector
 
         //body
         if ($delegate) {
-            $attributes['xmlns'] = 'urn:zimbraMail';
+            $attributes['xmlns'] = 'urn:zimbra' . $delegateType;
         } else {
             $attributes['xmlns'] = 'urn:zimbraAdmin';
         }
@@ -708,5 +708,26 @@ class ZimbraConnector
         );
 
         return $response['domain']['@attributes']['id'];
+    }
+
+    public function getInfo($account)
+    {
+        $this->delegateAuth($account);
+
+        return $this->request('GetInfo', array(), array(), true, 'Account');
+    }
+
+    public function getAccountQuotaUsed($name)
+    {
+        $info = $this->getInfo($name);
+        $used = $info['used'];
+        $quota = 'unknown';
+        foreach ($info['attrs']['attr'] as $a) {
+            if ($a['@attributes']['name'] == 'zimbraMailQuota') {
+                $quota = $a['@value'];
+            }
+        }
+
+        return $used . '/' . $quota;
     }
 }
