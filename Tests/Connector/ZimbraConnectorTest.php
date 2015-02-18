@@ -1627,4 +1627,98 @@ XML;
 
         $this->assertEquals('932/0', $quota);
     }
+
+    public function testCreateContact()
+    {
+        if ($this->mock) {
+            $gfr = $this->httpHead;
+            $gfr .= <<<'XML'
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+    <soap:Header>
+        <context xmlns="urn:zimbra">
+            <change token="180"/>
+        </context>
+    </soap:Header>
+    <soap:Body>
+        <GetFolderResponse xmlns="urn:zimbraMail">
+            <folder i4ms="1" rev="1" i4next="2" ms="1" l="11" uuid="ef77d0ed-8f27-4c49-98d1-906ccdb5dda4" n="0"
+                    luuid="03bef865-57aa-44ca-bc85-922b03f742f5" activesyncdisabled="0" absFolderPath="/" s="0"
+                    name="USER_ROOT" id="1" webOfflineSyncDays="0">
+                <folder i4ms="1" rev="1" i4next="17" ms="1" l="1" uuid="93d4cd09-c226-4606-92bc-407f27e6164d" n="0"
+                        luuid="ef77d0ed-8f27-4c49-98d1-906ccdb5dda4" activesyncdisabled="0" absFolderPath="/Briefcase"
+                        view="document" s="0" name="Briefcase" id="16" webOfflineSyncDays="0"/>
+                <folder i4ms="1" rev="1" i4next="11" f="#" ms="1" l="1" uuid="7b190a56-cda8-4804-9986-cc9868dd0903"
+                        n="0" luuid="ef77d0ed-8f27-4c49-98d1-906ccdb5dda4" activesyncdisabled="0"
+                        absFolderPath="/Calendar" view="appointment" s="0" name="Calendar" id="10"
+                        webOfflineSyncDays="0"/>
+                <folder i4ms="1" rev="1" i4next="15" ms="1" l="1" uuid="6efdca68-8aa4-46a1-bfbe-421dc41bf4e7" n="0"
+                        luuid="ef77d0ed-8f27-4c49-98d1-906ccdb5dda4" activesyncdisabled="0" absFolderPath="/Chats"
+                        view="message" s="0" name="Chats" id="14" webOfflineSyncDays="0"/>
+                <folder i4ms="171" rev="1" i4next="262" ms="1" l="1" uuid="63939fe0-7fe7-4e20-8cb9-dee09ab6e813" n="2"
+                        luuid="ef77d0ed-8f27-4c49-98d1-906ccdb5dda4" activesyncdisabled="0" absFolderPath="/Contacts"
+                        view="contact" s="0" name="Contacts" id="7" webOfflineSyncDays="0"/>
+                <folder i4ms="81" rev="1" i4next="258" ms="1" l="1" uuid="c06f4582-f79e-4811-ae68-6055a152f5b8" n="0"
+                        luuid="ef77d0ed-8f27-4c49-98d1-906ccdb5dda4" activesyncdisabled="0" absFolderPath="/Drafts"
+                        view="message" s="0" name="Drafts" id="6" webOfflineSyncDays="30"/>
+                <folder i4ms="80" rev="1" i4next="260" ms="1" l="1" uuid="58050e44-f23a-491a-8e5d-def48cdaf338" n="1"
+                        luuid="ef77d0ed-8f27-4c49-98d1-906ccdb5dda4" activesyncdisabled="0"
+                        absFolderPath="/Emailed Contacts" view="contact" s="0" name="Emailed Contacts" id="13"
+                        webOfflineSyncDays="0"/>
+                <folder i4ms="83" rev="1" i4next="260" f="u" ms="1" l="1" uuid="9eadda48-a1d7-4be0-991c-94265fc05b8b"
+                        n="1" luuid="ef77d0ed-8f27-4c49-98d1-906ccdb5dda4" activesyncdisabled="0" absFolderPath="/Inbox"
+                        view="message" s="932" u="1" name="Inbox" id="2" webOfflineSyncDays="30"/>
+                <folder i4ms="1" rev="1" i4next="5" ms="1" l="1" uuid="b9f8e890-2a16-456c-ba04-39a94f2df084" n="0"
+                        luuid="ef77d0ed-8f27-4c49-98d1-906ccdb5dda4" activesyncdisabled="0" absFolderPath="/Junk"
+                        view="message" s="0" name="Junk" id="4" webOfflineSyncDays="0"/>
+                <folder i4ms="82" rev="1" i4next="259" ms="1" l="1" uuid="d207e35f-df71-4f50-9105-cade5b54ed32" n="0"
+                        luuid="ef77d0ed-8f27-4c49-98d1-906ccdb5dda4" activesyncdisabled="0" absFolderPath="/Sent"
+                        view="message" s="0" name="Sent" id="5" webOfflineSyncDays="30"/>
+                <folder i4ms="1" rev="1" i4next="16" f="#" ms="1" l="1" uuid="6b7e86d7-1f2c-441e-9b03-9de76b1c2acc"
+                        n="0" luuid="ef77d0ed-8f27-4c49-98d1-906ccdb5dda4" activesyncdisabled="0" absFolderPath="/Tasks"
+                        view="task" s="0" name="Tasks" id="15" webOfflineSyncDays="0"/>
+                <folder i4ms="1" rev="1" i4next="4" ms="1" l="1" uuid="17870a64-ad40-479b-b3ea-ecca6673dd85" n="0"
+                        luuid="ef77d0ed-8f27-4c49-98d1-906ccdb5dda4" activesyncdisabled="0" absFolderPath="/Trash" s="0"
+                        name="Trash" id="3" webOfflineSyncDays="30"/>
+            </folder>
+        </GetFolderResponse>
+    </soap:Body>
+</soap:Envelope>
+XML;
+            $getFoldersResponse = new Response($gfr);
+
+            $ccr = $this->httpHead;
+            $ccr .= <<<'XML'
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+    <soap:Header>
+        <context xmlns="urn:zimbra">
+            <change token="181"/>
+        </context>
+    </soap:Header>
+    <soap:Body>
+        <CreateContactResponse xmlns="urn:zimbraMail">
+            <cn fileAsStr="last, first" rev="181" d="1424264251000" id="262" l="7">
+                <a n="firstName">first</a>
+                <a n="lastName">last</a>
+                <a n="email">test@test.com</a>
+            </cn>
+        </CreateContactResponse>
+    </soap:Body>
+</soap:Envelope>
+XML;
+            $createContactResponse = new Response($ccr);
+
+            $this->mockClient->shouldReceive('post')->times(4)->andReturnValues(
+                array(
+                    $this->loginResponse,
+                    $this->delegateResponse,
+                    $getFoldersResponse,
+                    $createContactResponse
+                )
+            );
+        }
+
+        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
+
+        $this->connector->createContact('test@test-domain19.com', array('firstName' => 'first', 'lastName' => 'last', 'email' => 'test@test.com'));
+    }
 }

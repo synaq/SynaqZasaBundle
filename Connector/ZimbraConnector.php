@@ -640,6 +640,15 @@ class ZimbraConnector
         return $response;
     }
 
+    public function getFolders($accountName)
+    {
+        $this->delegateAuth($accountName);
+
+        $response = $this->request('GetFolder', array(), array(), true);
+
+        return $response;
+    }
+
     public function createMountPoint($account, $reminder, $name, $path, $owner, $view)
     {
         $this->delegateAuth($account);
@@ -729,5 +738,41 @@ class ZimbraConnector
         }
 
         return $used . '/' . $quota;
+    }
+
+    public function getFolderByName($accountName, $folderName)
+    {
+        $folders = $this->getFolders($accountName, $folderName);
+
+        foreach ($folders['folder']['folder'] as $folder) {
+            if ($folder['@attributes']['name'] == $folderName) {
+
+                return $folder;
+            }
+        }
+
+        return false;
+    }
+
+    public function createContact($accountName, $attr)
+    {
+        $contactsFolder = $this->getFolderByName($accountName, 'Contacts');
+        if (!$contactsFolder) {
+
+            throw new SoapFaultException('Contacts folder not found on ' . $accountName);
+        }
+        $contactsFolderId = $contactsFolder['@attributes']['id'];
+
+        $this->request('CreateContact', array(),
+            array(
+                'cn' => array(
+                    '@attributes' => array(
+                        'l' => $contactsFolderId
+                    ),
+                    'a' => $this->getAArray($attr)
+                ),
+            ),
+            true
+        );
     }
 }
