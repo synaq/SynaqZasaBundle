@@ -775,4 +775,29 @@ class ZimbraConnector
             true
         );
     }
+
+    public function createSignature($accountName, $sigName, $sigType, $sigContent)
+    {
+        $this->delegateAuth($accountName);
+
+        $response = $this->request('CreateSignature', array(),
+            array(
+                'signature' => array(
+                    '@attributes' => array(
+                        'name' => $sigName,
+                    ),
+                    'content' => array(
+                        '@attributes' => array(
+                            'type' => $sigType
+                        ),
+                        '@value' => $sigContent
+                    )
+                )
+            ),
+            true, 'Account'
+        );
+
+        return $response['signature']['@attributes']['id'];
+
+    }
 }
