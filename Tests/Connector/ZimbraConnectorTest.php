@@ -1721,4 +1721,38 @@ XML;
 
         $this->connector->createContact('test@test-domain19.com', array('firstName' => 'first', 'lastName' => 'last', 'email' => 'test@test.com'));
     }
+
+    public function testCreateSignature()
+    {
+        if ($this->mock) {
+            $csr = $this->httpHead;
+            $csr .= <<<'XML'
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+    <soap:Header>
+        <context xmlns="urn:zimbra">
+            <change token="247"/>
+        </context>
+    </soap:Header>
+    <soap:Body>
+        <CreateSignatureResponse xmlns="urn:zimbraAccount">
+            <signature name="Primary" id="b7f7d8d2-da88-4da4-8572-84f1408f0696"/>
+        </CreateSignatureResponse>
+    </soap:Body>
+</soap:Envelope>
+XML;
+            $csResponse = new Response($csr);
+            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+                array(
+                    $this->loginResponse,
+                    $this->delegateResponse,
+                    $csResponse
+                )
+            );
+        }
+
+        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
+
+        $id = $this->connector->createSignature('test@test-domain19.com', 'Primary', 'text/plain', 'Signature content');
+        $this->assertEquals('b7f7d8d2-da88-4da4-8572-84f1408f0696', $id);
+    }
 }
