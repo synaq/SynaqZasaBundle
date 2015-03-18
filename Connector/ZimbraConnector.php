@@ -204,7 +204,7 @@ class ZimbraConnector
                 )
             ));
 
-        return $response['@attributes']['id'];
+        return $response['domain']['@attributes']['id'];
     }
 
     public function getDomain($name)
