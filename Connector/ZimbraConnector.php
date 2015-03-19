@@ -379,6 +379,16 @@ class ZimbraConnector
         return $response;
     }
 
+    public function renameAccount($id, $newAddress)
+    {
+        $response = $this->request('RenameAccount', array(
+            'newName' => $newAddress,
+            'id' => $id
+        ));
+
+        return $response;
+    }
+
     public function getAccountId($name)
     {
         $response = $this->request('GetAccount', array(), array(
