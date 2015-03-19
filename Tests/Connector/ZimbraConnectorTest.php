@@ -1755,4 +1755,33 @@ XML;
         $id = $this->connector->createSignature('test@test-domain19.com', 'Primary', 'text/plain', 'Signature content');
         $this->assertEquals('b7f7d8d2-da88-4da4-8572-84f1408f0696', $id);
     }
+
+    public function testRenameAccount()
+    {
+        if ($this->mock) {
+            $rar = $this->httpHead;
+            $rar .= <<<'XML'
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+    <soap:Header>
+        <context xmlns="urn:zimbra">
+            <change token="247"/>
+        </context>
+    </soap:Header>
+    <soap:Body>
+        <RenameAccountResponse xmlns="urn:zimbraAccount">
+            <account name="updated-test2@displayname2.com" id="dummy-id"/>
+        </RenameAccountResponse>
+    </soap:Body>
+</soap:Envelope>
+XML;
+
+        }
+
+        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
+
+        $id = 'dummy-id';
+        $newAddress = 'updated-test2@displayname1.com';
+
+        $this->connector->renameAccount($id, $newAddress);
+    }
 }
