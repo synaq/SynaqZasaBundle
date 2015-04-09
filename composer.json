@@ -16,7 +16,8 @@
         "ext-curl": "*",
         "symfony/framework-bundle": ">=2.1",
         "mockery/mockery": "dev-master@dev",
-        "synaq/curl-bundle": "dev-master"
+        "synaq/curl-bundle": "dev-master",
+	"phpunit/phpunit": "3.7.*"
     },
     "require-dev": {
         "symfony/yaml": "2.1.*",
