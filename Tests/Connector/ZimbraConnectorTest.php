@@ -1191,7 +1191,10 @@ XML;
                     </soap:Header>
                     <soap:Body>
                         <CreateAccountResponse xmlns="urn:zimbraAdmin">
-                            <account id="dummy-account-id" name="test-account@dummy-domain.com"/>
+                            <account id="dummy-account-id" name="test-account@dummy-domain.com">
+                                <a n="zimbraMailHost">sample-host.sample-domain.com</a>
+                                <a n="zimbraMailTrashLifetime">30d</a>
+                            </account>
                         </CreateAccountResponse>
                     </soap:Body>
                 </soap:Envelope>
@@ -1219,7 +1222,62 @@ XML;
             'description' => 'dummy description',
             'company' => 'Acme Ltd'
         );
+
+        $id = $this->connector->createAccount('test-account@dummy-domain.com', 'dummy-password', $attr, $returnAttrs);
+
+        $this->assertEquals('dummy-account-id', $id);
+        $this->assertInternalType('array', $returnAttrs, "Return attributes not array");
+        $this->assertArrayHasKey('zimbraMailHost', $returnAttrs, "Zimbra mail host not returned");
+        $this->assertEquals('sample-host.sample-domain.com', $returnAttrs['zimbraMailHost'], "Incorrect Zimbra mail host returned");
+        $this->assertArrayHasKey('zimbraMailTrashLifetime', $returnAttrs, "Zimbra trash lifetime not returned");
+        $this->assertEquals('30d', $returnAttrs['zimbraMailTrashLifetime'], "Incorrect Zimbra trash lifetime returned");
+    }
+
+    public function testCreateMailboxIgnoreProperties()
+    {
+        if ($this->mock) {
+            $raw = $this->httpHead;
+            $raw .= <<<'XML'
+                <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+                    <soap:Header>
+                        <context xmlns="urn:zimbra"/>
+                    </soap:Header>
+                    <soap:Body>
+                        <CreateAccountResponse xmlns="urn:zimbraAdmin">
+                            <account id="dummy-account-id" name="test-account@dummy-domain.com">
+                                <a n="zimbraMailHost">sample-host.sample-domain.com</a>
+                                <a n="zimbraMailTrashLifetime">30d</a>
+                            </account>
+                        </CreateAccountResponse>
+                    </soap:Body>
+                </soap:Envelope>
+XML;
+
+            $response = new Response($raw);
+
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
+                array(
+                    $this->loginResponse,
+                    $response
+                )
+            );
+        }
+
+        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
+        $attr = array(
+            'displayName' => 'Joe Schmoe',
+            'givenName' => 'Joe',
+            'sn' => 'Schmoe',
+            'zimbraPasswordMustChange' => 'TRUE',
+            'zimbraIsDelegatedAdminAccount' => 'FALSE',
+            'zimbraHideInGal' => 'FALSE',
+            'zimbraCOSId' => 'dummy-cos-id',
+            'description' => 'dummy description',
+            'company' => 'Acme Ltd'
+        );
+
         $id = $this->connector->createAccount('test-account@dummy-domain.com', 'dummy-password', $attr);
+
         $this->assertEquals('dummy-account-id', $id);
     }
 
@@ -1775,6 +1833,13 @@ XML;
 </soap:Envelope>
 XML;
 
+            $response = new Response($rar);
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
+                array(
+                    $this->loginResponse,
+                    $response
+                )
+            );
         }
 
         $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);

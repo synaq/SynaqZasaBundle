@@ -245,7 +245,7 @@ class ZimbraConnector
         ));
     }
 
-    public function createAccount($name, $password, $attributes)
+    public function createAccount($name, $password, $attributes, &$returnAttributes = array())
     {
         $a = $this->getAArray($attributes);
         $response = $this->request('CreateAccount', array(), array(
@@ -253,6 +253,11 @@ class ZimbraConnector
             'password' => $password,
             'a' => $a
         ));
+
+        $returnAttributes = array();
+        foreach ($response['account']['a'] as $node) {
+            $returnAttributes[$node['@attributes']['n']] = $node['@value'];
+        }
 
         return $response['account']['@attributes']['id'];
     }
