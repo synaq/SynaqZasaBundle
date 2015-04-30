@@ -43,19 +43,26 @@ class ZimbraConnector
      */
     private $delegatedAuthAccount = false;
 
+    /**
+     * @var bool
+     */
+    private $fopen = true;
+
 
     /**
      * @param \Synaq\CurlBundle\Curl\Wrapper $httpClient
      * @param $server
      * @param $adminUser
      * @param $adminPass
+     * @param bool $fopen
      */
-    public function __construct(Wrapper $httpClient, $server, $adminUser, $adminPass)
+    public function __construct(Wrapper $httpClient, $server, $adminUser, $adminPass, $fopen = true)
     {
         $this->httpClient = $httpClient;
         $this->server = $server;
         $this->adminUser = $adminUser;
         $this->adminPass = $adminPass;
+        $this->fopen = $fopen;
 
         $this->login();
     }
@@ -118,7 +125,7 @@ class ZimbraConnector
         );
         $xml = Array2Xml::createXML('soap:Envelope', $message)->saveXML();
 
-        $response = $this->httpClient->post($this->server, $xml);
+        $response = $this->httpClient->post($this->server, $xml, array("Content-type: application/xml"), array(), $this->fopen);
         $responseContent = $response->getBody();
 
         $responseArray = Xml2Array::createArray($responseContent);
@@ -196,13 +203,13 @@ class ZimbraConnector
     public function getDomainId($name)
     {
         $response = $this->request('GetDomain', array(), array(
-                'domain' => array(
-                    '@attributes' => array(
-                        'by' => 'name'
-                    ),
-                    '@value' => $name,
-                )
-            ));
+            'domain' => array(
+                '@attributes' => array(
+                    'by' => 'name'
+                ),
+                '@value' => $name,
+            )
+        ));
 
         return $response['domain']['@attributes']['id'];
     }
