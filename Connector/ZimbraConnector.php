@@ -812,6 +812,11 @@ class ZimbraConnector
         return false;
     }
 
+    public function createFolder($accountName, $folderName, $parentFolderId)
+    {
+
+    }
+
     public function createContact($accountName, $attr)
     {
         $contactsFolder = $this->getFolderByName($accountName, 'Contacts');

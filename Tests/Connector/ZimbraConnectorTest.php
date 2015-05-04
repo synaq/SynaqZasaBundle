@@ -645,6 +645,53 @@ XML;
         $this->connector->getFolder('user1@testdomain31234.co.za.archive', 2);
     }
 
+    public function testCreateFolder()
+    {
+        if ($this->mock) {
+            $raw = $this->httpHead;
+            $raw .= <<<'XML'
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+  <soap:Header>
+    <context xmlns="urn:zimbra">
+      <session id="17393">17393</session>
+      <change token="16"/>
+      <notify seq="3">
+        <created>
+          <folder i4ms="16" rev="16" i4next="266" ms="16" l="1" uuid="6009ed8b-fc82-489c-97e3-3bd4080670e0" n="0" luuid="1dcfb61c-90e9-4a64-91e4-dd8b48fd6898" activesyncdisabled="0" absFolderPath="/Test" s="0" name="Test" id="265" webOfflineSyncDays="0"/>
+        </created>
+        <modified>
+          <folder id="1" uuid="1dcfb61c-90e9-4a64-91e4-dd8b48fd6898"/>
+        </modified>
+      </notify>
+    </context>
+  </soap:Header>
+  <soap:Body>
+    <CreateFolderResponse xmlns="urn:zimbraMail">
+      <folder i4ms="16" rev="16" i4next="266" ms="16" l="1" uuid="6009ed8b-fc82-489c-97e3-3bd4080670e0" n="0" luuid="1dcfb61c-90e9-4a64-91e4-dd8b48fd6898" activesyncdisabled="0" absFolderPath="/Test" s="0" name="Test" id="265" webOfflineSyncDays="0"/>
+    </CreateFolderResponse>
+  </soap:Body>
+</soap:Envelope>
+XML;
+
+            $response = new Response($raw);
+
+            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+                array(
+                    $this->loginResponse,
+                    $this->delegateResponse,
+                    $response
+                )
+            );
+
+        }
+
+        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
+
+        $id = $this->connector->createFolder('user01@testdomain3.co.za', "Test", 1);
+
+        $this->assertEquals(265, $id, "Incorrect folder ID returned");
+    }
+
     public function testCreateMountPoint()
     {
         if ($this->mock) {
