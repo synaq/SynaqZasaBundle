@@ -814,7 +814,26 @@ class ZimbraConnector
 
     public function createFolder($accountName, $folderName, $parentFolderId)
     {
+        if (strpos($folderName, '/') > -1) {
 
+            throw new \InvalidArgumentException("Invalid folder name, $folderName, folder names cannot contain forward slash charaters. You must provide the parent folder ID to create a subfolder.");
+        }
+
+        $this->delegateAuth($accountName);
+
+        $response = $this->request('CreateFolder', array(),
+            array(
+                'folder' => array(
+                    '@attributes' => array(
+                        'l' => $parentFolderId,
+                        'name' => $folderName
+                    )
+                )
+            ),
+            true
+        );
+
+        return $response['folder']['@attributes']['id'];
     }
 
     public function createContact($accountName, $attr)

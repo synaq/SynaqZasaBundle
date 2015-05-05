@@ -647,6 +647,8 @@ XML;
 
     public function testCreateFolder()
     {
+        $accountName = 'user01@testdomain3.co.za';
+
         if ($this->mock) {
             $raw = $this->httpHead;
             $raw .= <<<'XML'
@@ -687,7 +689,7 @@ XML;
 
         $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
-        $id = $this->connector->createFolder('user01@testdomain3.co.za', "Test", 1);
+        $id = $this->connector->createFolder($accountName, "Test", 1);
 
         $this->assertEquals(265, $id, "Incorrect folder ID returned");
     }
@@ -1864,8 +1866,8 @@ XML;
     public function testRenameAccount()
     {
         if ($this->mock) {
-            $rar = $this->httpHead;
-            $rar .= <<<'XML'
+            $raw = $this->httpHead;
+            $raw .= <<<'XML'
 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
     <soap:Header>
         <context xmlns="urn:zimbra">
@@ -1880,6 +1882,14 @@ XML;
 </soap:Envelope>
 XML;
 
+            $response = new Response($raw);
+
+            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+                array(
+                    $this->loginResponse,
+                    $response
+                )
+            );
         }
 
         $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
