@@ -1829,6 +1829,47 @@ XML;
         $this->connector->createContact('test@test-domain19.com', array('firstName' => 'first', 'lastName' => 'last', 'email' => 'test@test.com'));
     }
 
+    public function testCreateContactCustomFolder()
+    {
+        $accountName = 'test@test-domain19.com';
+
+        if ($this->mock) {
+            $ccr = $this->httpHead;
+            $ccr .= <<<'XML'
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+    <soap:Header>
+        <context xmlns="urn:zimbra">
+            <change token="181"/>
+        </context>
+    </soap:Header>
+    <soap:Body>
+        <CreateContactResponse xmlns="urn:zimbraMail">
+            <cn fileAsStr="last, first" rev="181" d="1424264251000" id="262" l="13">
+                <a n="firstName">first</a>
+                <a n="lastName">last</a>
+                <a n="email">test@test.com</a>
+            </cn>
+        </CreateContactResponse>
+    </soap:Body>
+</soap:Envelope>
+XML;
+            $createContactResponse = new Response($ccr);
+
+            $this->mockClient
+                ->shouldReceive('post')
+                ->times(3)
+                ->andReturnValues(array(
+                    $this->loginResponse,
+                    $this->delegateResponse,
+                    $createContactResponse
+                ));
+        }
+
+        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
+
+        $this->connector->createContact($accountName, array('firstName' => 'first', 'lastName' => 'last', 'email' => 'test@test.com'), 13);
+    }
+
     public function testCreateSignature()
     {
         if ($this->mock) {

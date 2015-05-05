@@ -836,14 +836,18 @@ class ZimbraConnector
         return $response['folder']['@attributes']['id'];
     }
 
-    public function createContact($accountName, $attr)
+    public function createContact($accountName, $attr, $contactsFolderId = null)
     {
-        $contactsFolder = $this->getFolderByName($accountName, 'Contacts');
-        if (!$contactsFolder) {
+        if (is_null($contactsFolderId)) {
+            $contactsFolder = $this->getFolderByName($accountName, 'Contacts');
+            if (!$contactsFolder) {
 
-            throw new SoapFaultException('Contacts folder not found on ' . $accountName);
+                throw new SoapFaultException('Contacts folder not found on ' . $accountName);
+            }
+            $contactsFolderId = $contactsFolder['@attributes']['id'];
+        } else {
+            $this->delegateAuth($accountName);
         }
-        $contactsFolderId = $contactsFolder['@attributes']['id'];
 
         $this->request('CreateContact', array(),
             array(
