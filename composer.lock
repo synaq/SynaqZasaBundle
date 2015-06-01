@@ -977,12 +977,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/synaq/SynaqCurlBundle.git",
-                "reference": "3dc8608a9144d43ca7a4ede1c4d93932ac091f57"
+                "reference": "65d2cd4a5502ff9cdaeea628d309b2a5b2189803"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/synaq/SynaqCurlBundle/zipball/3dc8608a9144d43ca7a4ede1c4d93932ac091f57",
-                "reference": "3dc8608a9144d43ca7a4ede1c4d93932ac091f57",
+                "url": "https://api.github.com/repos/synaq/SynaqCurlBundle/zipball/65d2cd4a5502ff9cdaeea628d309b2a5b2189803",
+                "reference": "65d2cd4a5502ff9cdaeea628d309b2a5b2189803",
                 "shasum": ""
             },
             "require": {
@@ -1015,7 +1015,7 @@
                 "api",
                 "curl"
             ],
-            "time": "2015-06-01 08:18:07"
+            "time": "2015-06-01 12:49:07"
         }
     ],
     "packages-dev": [
