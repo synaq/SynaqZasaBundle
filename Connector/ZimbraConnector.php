@@ -415,11 +415,13 @@ class ZimbraConnector
         return $response['account']['@attributes']['id'];
     }
 
-    public function addAccountAlias($id, $alias)
+    public function addAccountAlias($id, $alias, $attributes = array())
     {
+        $a = $this->getAArray($attributes);
         $this->request('AddAccountAlias', array(), array(
             'id' => $id,
-            'alias' => $alias
+            'alias' => $alias,
+            'a' => $a
         ));
     }
 
