@@ -1826,7 +1826,9 @@ XML;
 
         $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
-        $this->connector->createContact('test@test-domain19.com', array('firstName' => 'first', 'lastName' => 'last', 'email' => 'test@test.com'));
+        $id = $this->connector->createContact('test@test-domain19.com', array('firstName' => 'first', 'lastName' => 'last', 'email' => 'test@test.com'), null);
+
+        $this->assertEquals('262', $id);
     }
 
     public function testCreateContactCustomFolder()

@@ -851,7 +851,7 @@ class ZimbraConnector
             $this->delegateAuth($accountName);
         }
 
-        $this->request('CreateContact', array(),
+        $response = $this->request('CreateContact', array(),
             array(
                 'cn' => array(
                     '@attributes' => array(
@@ -862,6 +862,8 @@ class ZimbraConnector
             ),
             true
         );
+
+        return $response['cn']['@attributes']['id'];
     }
 
     public function createSignature($accountName, $sigName, $sigType, $sigContent)
