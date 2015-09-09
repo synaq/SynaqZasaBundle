@@ -1959,7 +1959,7 @@ XML;
   </soap:Body>
 </soap:Envelope>
 XML;
-            $response = new Response ($raw);
+            $response = new Response($raw);
 
             $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
                 array(
@@ -2002,7 +2002,7 @@ XML;
   </soap:Body>
 </soap:Envelope>
 XML;
-            $response = new Response ($raw);
+            $response = new Response($raw);
 
             $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
                 array(
@@ -2032,5 +2032,41 @@ XML;
         $this->assertEquals('tag2', $tags[1]['name']);
         $this->assertArrayHasKey('id', $tags[1]);
         $this->assertEquals('tag-id:265', $tags[1]['id']);
+    }
+
+    public function testCreateTag()
+    {
+        if ($this->mock) {
+            $raw = $this->httpHead;
+            $raw .= <<<'XML'
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+  <soap:Header>
+    <context xmlns="urn:zimbra">
+      <change acct="cc024fcf-ef49-4b71-9948-f66fb48a0252" token="310"/>
+    </context>
+  </soap:Header>
+  <soap:Body>
+    <CreateTagResponse xmlns="urn:zimbraMail">
+      <tag name="tag4" id="tag-id:281"/>
+    </CreateTagResponse>
+  </soap:Body>
+</soap:Envelope>
+XML;
+            $response = new Response($raw);
+
+            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+                array(
+                    $this->loginResponse,
+                    $this->delegateResponse,
+                    $response
+                )
+            );
+        }
+
+        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
+
+        $tagId = $this->connector->createTag('test@test.com', 'tag4');
+
+        $this->assertEquals('tag-id:281', $tagId);
     }
 }

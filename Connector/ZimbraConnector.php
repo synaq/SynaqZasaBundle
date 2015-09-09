@@ -911,4 +911,22 @@ class ZimbraConnector
 
         return $tags;
     }
+
+    public function createTag($accountName, $tagName)
+    {
+        $this->delegateAuth($accountName);
+
+        $response = $this->request('CreateTag', array(),
+            array(
+                'tag' => array(
+                    '@attributes' => array(
+                        'name' => $tagName
+                    )
+                )
+            ),
+            true
+        );
+
+        return $response['tag']['@attributes']['id'];
+    }
 }
