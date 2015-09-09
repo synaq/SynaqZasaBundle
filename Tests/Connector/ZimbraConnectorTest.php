@@ -1826,7 +1826,7 @@ XML;
 
         $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
-        $id = $this->connector->createContact('test@test-domain19.com', array('firstName' => 'first', 'lastName' => 'last', 'email' => 'test@test.com'), null);
+        $id = $this->connector->createContact('test@test.com', array('firstName' => 'first', 'lastName' => 'last', 'email' => 'test@test.com'), null);
 
         $this->assertEquals('262', $id);
     }
@@ -2070,5 +2070,39 @@ XML;
         $tagId = $this->connector->createTag('test@test.com', 'tag4');
 
         $this->assertEquals('tag-id:281', $tagId);
+    }
+
+    public function testTagContact()
+    {
+        if ($this->mock) {
+            $raw = $this->httpHead;
+            $raw .= <<<'XML'
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+<soap:Header>
+<context xmlns="urn:zimbra"><change token="406"/></context>
+</soap:Header>
+<soap:Body>
+<ContactActionResponse xmlns="urn:zimbraMail">
+<action op="tag" id="300"/>
+</ContactActionResponse>
+</soap:Body>
+</soap:Envelope>
+XML;
+            $response = new Response($raw);
+
+            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+                array(
+                    $this->loginResponse,
+                    $this->delegateResponse,
+                    $response
+                )
+            );
+        }
+
+        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
+
+        $contactId = '300';
+
+        $this->connector->tagContact('test@test.com', $contactId, '281');
     }
 }

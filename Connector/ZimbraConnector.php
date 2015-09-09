@@ -931,4 +931,23 @@ class ZimbraConnector
 
         return $response['tag']['@attributes']['id'];
     }
+
+    public function tagContact($accountName, $contactId, $tagId)
+    {
+        $this->delegateAuth($accountName);
+
+        $this->request('ContactAction', array(),
+            array(
+                'action' => array(
+                    '@attributes' => array(
+                        'op' => 'tag',
+                        'id' => $contactId,
+                        'by' => 'name',
+                        'tag' => $tagId
+                    )
+                )
+            ),
+            true
+        );
+    }
 }
