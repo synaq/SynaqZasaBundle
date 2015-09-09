@@ -1940,4 +1940,97 @@ XML;
 
         $this->connector->renameAccount($id, $newAddress);
     }
+
+    public function testGetAllTags()
+    {
+        if ($this->mock) {
+            $raw = $this->httpHead;
+            $raw .= <<<'XML'
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+  <soap:Header>
+    <context xmlns="urn:zimbra">
+      <change acct="cc024fcf-ef49-4b71-9948-f66fb48a0252" token="299"/>
+    </context>
+  </soap:Header>
+  <soap:Body>
+    <GetTagResponse xmlns="urn:zimbraMail">
+      <tag color="9" name="tag1" id="cc024fcf-ef49-4b71-9948-f66fb48a0252:264" n="1"/>
+    </GetTagResponse>
+  </soap:Body>
+</soap:Envelope>
+XML;
+            $response = new Response ($raw);
+
+            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+                array(
+                    $this->loginResponse,
+                    $this->delegateResponse,
+                    $response
+                )
+            );
+        }
+
+        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
+
+        $tags = $this->connector->getAllTags('test@test.com');
+
+        $this->assertArrayHasKey(0, $tags);
+        $this->assertArrayHasKey('color', $tags[0]);
+        $this->assertEquals('9', $tags[0]['color']);
+        $this->assertArrayHasKey('name', $tags[0]);
+        $this->assertEquals('tag1', $tags[0]['name']);
+        $this->assertArrayHasKey('id', $tags[0]);
+        $this->assertEquals('cc024fcf-ef49-4b71-9948-f66fb48a0252:264', $tags[0]['id']);
+    }
+
+    public function testGetAllTagsMultiple()
+    {
+        if ($this->mock) {
+            $raw = $this->httpHead;
+            $raw .= <<<'XML'
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+  <soap:Header>
+    <context xmlns="urn:zimbra">
+      <change acct="cc024fcf-ef49-4b71-9948-f66fb48a0252" token="299"/>
+    </context>
+  </soap:Header>
+  <soap:Body>
+    <GetTagResponse xmlns="urn:zimbraMail">
+      <tag color="9" name="tag1" id="cc024fcf-ef49-4b71-9948-f66fb48a0252:264" n="1"/>
+      <tag color="9" name="tag2" id="tag-id:265" n="1"/>
+    </GetTagResponse>
+  </soap:Body>
+</soap:Envelope>
+XML;
+            $response = new Response ($raw);
+
+            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+                array(
+                    $this->loginResponse,
+                    $this->delegateResponse,
+                    $response
+                )
+            );
+        }
+
+        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
+
+        $tags = $this->connector->getAllTags('test@test.com');
+
+        $this->assertArrayHasKey(0, $tags);
+        $this->assertArrayHasKey('color', $tags[0]);
+        $this->assertEquals('9', $tags[0]['color']);
+        $this->assertArrayHasKey('name', $tags[0]);
+        $this->assertEquals('tag1', $tags[0]['name']);
+        $this->assertArrayHasKey('id', $tags[0]);
+        $this->assertEquals('cc024fcf-ef49-4b71-9948-f66fb48a0252:264', $tags[0]['id']);
+
+        $this->assertArrayHasKey(1, $tags);
+        $this->assertArrayHasKey('color', $tags[1]);
+        $this->assertEquals('9', $tags[1]['color']);
+        $this->assertArrayHasKey('name', $tags[1]);
+        $this->assertEquals('tag2', $tags[1]['name']);
+        $this->assertArrayHasKey('id', $tags[1]);
+        $this->assertEquals('tag-id:265', $tags[1]['id']);
+    }
 }

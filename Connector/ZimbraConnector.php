@@ -888,4 +888,27 @@ class ZimbraConnector
         return $response['signature']['@attributes']['id'];
 
     }
+
+    public function getAllTags($accountName)
+    {
+        $this->delegateAuth($accountName);
+
+        $response = $this->request('GetTag', array(), array(), true);
+
+        $tags = array();
+        //single
+        if (array_key_exists('tag', $response)) {
+            if (array_key_exists('@attributes', $response['tag'])) {
+                //single
+                $tags[] = $response['tag']['@attributes'];
+            } else {
+                //multiple
+                foreach ($response['tag'] as $tag) {
+                    $tags[] = $tag['@attributes'];
+                }
+            }
+        }
+
+        return $tags;
+    }
 }
