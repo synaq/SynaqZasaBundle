@@ -20,41 +20,24 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
      */
     private $connector;
 
-    /**
-     * @var bool
-     */
-    private $mock = true;
-
-    /**
-     * @var string
-     */
-    private $server = 'https://10.1.5.145:7071/service/admin/soap';
-
-    /**
-     * @var string
-     */
-    private $username = 'admin@demo.synaq.com';
-
-    /**
-     * @var string
-     */
-    private $password = '!@synaq()';
-
 
     public function setup()
     {
-        if ($this->mock) {
-            $this->mockClient = \Mockery::mock('Synaq\CurlBundle\Curl\Wrapper');
-            $this->mockClient->shouldReceive('post')->once()->andReturn($this->buildSuccessfulAdminAuthResponse());
-            $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
-        } else {
-            $this->mockClient = new Wrapper(null, false, true, false, array(
-                'CURLOPT_RETURNTRANSFER' => true,
-                'CURLOPT_SSL_VERIFYPEER' => false,
-                'CURLOPT_SSL_VERIFYHOST' => false
-            ), array());
-            $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
-        }
+        $this->mockClient = \Mockery::mock('Synaq\CurlBundle\Curl\Wrapper');
+        $this->mockClient->shouldReceive('post')->once()->andReturn($this->buildSuccessfulAdminAuthResponse());
+        $server = 'https://myserver.com:7071/service/admin/soap';
+        $username = 'admin@myserver.com';
+        $password = 'mypassword';
+        $this->connector = new ZimbraConnector($this->mockClient, $server, $username, $password);
+        //uncomment the below to use a real server,
+        //replacing the credentials with with your server auth details.
+        //You will have to comment the mocks in individual tests as well
+//        $this->mockClient = new Wrapper(null, false, true, false, array(
+//            'CURLOPT_RETURNTRANSFER' => true,
+//            'CURLOPT_SSL_VERIFYPEER' => false,
+//            'CURLOPT_SSL_VERIFYHOST' => false
+//        ), array());
+//        $this->connector = new ZimbraConnector($this->mockClient, $server, $username, $password);
     }
 
     private function buildSuccessfulAdminAuthResponse()
