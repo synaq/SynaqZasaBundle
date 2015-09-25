@@ -9,7 +9,6 @@ use Mockery as m;
 
 class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
 {
-
     /**
      * @var Wrapper | m\Mock
      */
@@ -25,6 +24,7 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
     {
         $this->httpClient = \Mockery::mock('Synaq\CurlBundle\Curl\Wrapper');
         $this->httpClient->shouldReceive('post')->once()->andReturn($this->buildSuccessfulAdminAuthResponse());
+
         $server = 'https://myserver.com:7071/service/admin/soap';
         $username = 'admin@myserver.com';
         $password = 'mypassword';
