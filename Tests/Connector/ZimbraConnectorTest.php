@@ -64,7 +64,7 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
 
     private function buildSuccessfulSoapResponseWithBody($body)
     {
-        $response = $this->getRawHttpOkHeader();
+        $response = $this->buildRawHttpOkHeader();
         $response .=
             '<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
             <soap:Header>
@@ -81,7 +81,7 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
         return new Response($response);
     }
 
-    private function getRawHttpOkHeader()
+    private function buildRawHttpOkHeader()
     {
         $httpHead = "HTTP/1.1 200 OK\r\n";
         $httpHead .= "Date: Wed, 07 Aug 2013 11:09:37 GMT\r\n";
@@ -283,7 +283,7 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
     public function testCreateMountPoint()
     {
         //mocks
-        $raw = $this->getRawHttpOkHeader();
+        $raw = $this->buildRawHttpOkHeader();
         $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
