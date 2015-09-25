@@ -40,60 +40,17 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
      */
     private $password = '!@synaq()';
 
-    /**
-     * @var Response
-     */
-    private $loginResponse;
-
-    /**
-     * @var Response
-     */
-    private $delegateResponse;
-
 
     public function setup()
     {
         if ($this->mock) {
             $this->mockClient = \Mockery::mock('Synaq\CurlBundle\Curl\Wrapper');
-
-            $delegateRaw = $this->getRawHttpOkHeader();
-            $delegateRaw .= <<<'XML'
-                <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
-                    <soap:Header>
-                        <context xmlns="urn:zimbra">
-                            <change token="19441"/>
-                        </context>
-                    </soap:Header>
-                    <soap:Body>
-                        <DelegateAuthResponse xmlns="urn:zimbraAdmin">
-                            <authToken>
-                                0_78aa1c994ad070a169746182fc26bda32ef0c172_69643d33363a38313465383033322d663364322d343230652d613238362d3639636466343663646635313b6578703d31333a313338343234393338313135303b6169643d33363a30313639323938332d393931382d343861322d613663332d3661323139316630363466643b747970653d363a7a696d6272613b
-                            </authToken>
-                            <lifetime>3600000</lifetime>
-                        </DelegateAuthResponse>
-                    </soap:Body>
-                </soap:Envelope>
-XML;
-            $this->delegateResponse = new Response($delegateRaw);
             $this->mockClient->shouldReceive('post')->once()->andReturn($this->getSuccessfulAdminAuthResponse());
             $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
         } else {
             $this->mockClient = new Wrapper(null, false, true, false, array('CURLOPT_RETURNTRANSFER' => true, 'CURLOPT_SSL_VERIFYPEER' => false, 'CURLOPT_SSL_VERIFYHOST' => false), array());
             $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
         }
-    }
-
-    private function getRawHttpOkHeader()
-    {
-        $httpHead = "HTTP/1.1 200 OK\r\n";
-        $httpHead .= "Date: Wed, 07 Aug 2013 11:09:37 GMT\r\n";
-        $httpHead .= "Expires: Thu, 01 Jan 1970 00:00:00 GMT\r\n";
-        $httpHead .= "Content-Type: text/xml;charset=UTF-8\r\n";
-        $httpHead .= "Cache-Control: no-store, no-cache\r\n";
-        $httpHead .= "Content-Length: 519\r\n";
-        $httpHead .= "\r\n";
-
-        return $httpHead;
     }
 
     private function getSuccessfulAdminAuthResponse()
@@ -116,7 +73,44 @@ XML;
                     </soap:Body>
                 </soap:Envelope>
 XML;
+
         return new Response($loginRaw);
+    }
+
+    private function getSuccessfulDelegateAuthResponse()
+    {
+        $delegateRaw = $this->getRawHttpOkHeader();
+        $delegateRaw .= <<<'XML'
+                <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+                    <soap:Header>
+                        <context xmlns="urn:zimbra">
+                            <change token="19441"/>
+                        </context>
+                    </soap:Header>
+                    <soap:Body>
+                        <DelegateAuthResponse xmlns="urn:zimbraAdmin">
+                            <authToken>
+                                0_78aa1c994ad070a169746182fc26bda32ef0c172_69643d33363a38313465383033322d663364322d343230652d613238362d3639636466343663646635313b6578703d31333a313338343234393338313135303b6169643d33363a30313639323938332d393931382d343861322d613663332d3661323139316630363466643b747970653d363a7a696d6272613b
+                            </authToken>
+                            <lifetime>3600000</lifetime>
+                        </DelegateAuthResponse>
+                    </soap:Body>
+                </soap:Envelope>
+XML;
+        return new Response($delegateRaw);
+    }
+
+    private function getRawHttpOkHeader()
+    {
+        $httpHead = "HTTP/1.1 200 OK\r\n";
+        $httpHead .= "Date: Wed, 07 Aug 2013 11:09:37 GMT\r\n";
+        $httpHead .= "Expires: Thu, 01 Jan 1970 00:00:00 GMT\r\n";
+        $httpHead .= "Content-Type: text/xml;charset=UTF-8\r\n";
+        $httpHead .= "Cache-Control: no-store, no-cache\r\n";
+        $httpHead .= "Content-Length: 519\r\n";
+        $httpHead .= "\r\n";
+
+        return $httpHead;
     }
 
     public function testAddDlToDl()
@@ -370,7 +364,7 @@ XML;
     public function testDelegateAuth()
     {
         if ($this->mock) {
-            $this->mockClient->shouldReceive('post')->once()->andReturn($this->delegateResponse);
+            $this->mockClient->shouldReceive('post')->once()->andReturn($this->getSuccessfulDelegateAuthResponse());
         }
 
         $response = $this->connector->delegateAuth('user1@testdomain2.co.za.archive');
@@ -446,7 +440,7 @@ XML;
 
             $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->delegateResponse,
+                    $this->getSuccessfulDelegateAuthResponse(),
                     $response
                 )
             );
@@ -495,7 +489,7 @@ XML;
 
             $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->delegateResponse,
+                    $this->getSuccessfulDelegateAuthResponse(),
                     $response
                 )
             );
@@ -529,7 +523,7 @@ XML;
 
             $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->delegateResponse,
+                    $this->getSuccessfulDelegateAuthResponse(),
                     $response
                 )
             );
@@ -578,7 +572,7 @@ XML;
 
             $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->delegateResponse,
+                    $this->getSuccessfulDelegateAuthResponse(),
                     $response
                 )
             );
@@ -621,7 +615,7 @@ XML;
 
             $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->delegateResponse,
+                    $this->getSuccessfulDelegateAuthResponse(),
                     $response
                 )
             );
@@ -673,7 +667,7 @@ XML;
 
             $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->delegateResponse,
+                    $this->getSuccessfulDelegateAuthResponse(),
                     $response
                 )
             );
@@ -723,7 +717,7 @@ XML;
 
             $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->delegateResponse,
+                    $this->getSuccessfulDelegateAuthResponse(),
                     $response
                 )
             );
@@ -1570,7 +1564,7 @@ XML;
 
             $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->delegateResponse,
+                    $this->getSuccessfulDelegateAuthResponse(),
                     $response
                 )
             );
@@ -1661,7 +1655,7 @@ XML;
 
             $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
                 array(
-                    $this->delegateResponse,
+                    $this->getSuccessfulDelegateAuthResponse(),
                     $getFoldersResponse,
                     $createContactResponse
                 )
@@ -1703,7 +1697,7 @@ XML;
                 ->shouldReceive('post')
                 ->times(2)
                 ->andReturnValues(array(
-                    $this->delegateResponse,
+                    $this->getSuccessfulDelegateAuthResponse(),
                     $createContactResponse
                 ));
         }
@@ -1732,7 +1726,7 @@ XML;
             $csResponse = new Response($csr);
             $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->delegateResponse,
+                    $this->getSuccessfulDelegateAuthResponse(),
                     $csResponse
                 )
             );
@@ -1794,7 +1788,7 @@ XML;
 
             $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->delegateResponse,
+                    $this->getSuccessfulDelegateAuthResponse(),
                     $response
                 )
             );
@@ -1834,7 +1828,7 @@ XML;
 
             $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->delegateResponse,
+                    $this->getSuccessfulDelegateAuthResponse(),
                     $response
                 )
             );
@@ -1881,7 +1875,7 @@ XML;
 
             $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->delegateResponse,
+                    $this->getSuccessfulDelegateAuthResponse(),
                     $response
                 )
             );
@@ -1912,7 +1906,7 @@ XML;
 
             $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->delegateResponse,
+                    $this->getSuccessfulDelegateAuthResponse(),
                     $response
                 )
             );
