@@ -51,17 +51,6 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
             </AuthResponse>');
     }
 
-    private function buildSuccessfulDelegateAuthResponse()
-    {
-        return $this->buildSuccessfulSoapResponseWithBody(
-            '<DelegateAuthResponse xmlns="urn:zimbraAdmin">
-                <authToken>
-                    dummy_delegate_auth_token
-                </authToken>
-                <lifetime>3600000</lifetime>
-            </DelegateAuthResponse>');
-    }
-
     private function buildSuccessfulSoapResponseWithBody($body)
     {
         $response = $this->buildRawHttpOkHeader();
@@ -94,9 +83,36 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
         return $httpHead;
     }
 
+    public function testDelegateAuth()
+    {
+        $this->expectDelegatedAuth();
+        $response = $this->connector->delegateAuth('user1@testdomain2.co.za.archive');
+        $this->assertEquals('dummy_delegate_auth_token',
+            $response['authToken']);
+        $this->assertEquals('3600000', $response['lifetime']);
+    }
+
+    private function expectDelegatedAuth()
+    {
+        $this->expectSuccessfulPostWithResponseBody(
+            '<DelegateAuthResponse xmlns="urn:zimbraAdmin">
+                <authToken>
+                    dummy_delegate_auth_token
+                </authToken>
+                <lifetime>3600000</lifetime>
+            </DelegateAuthResponse>'
+        );
+    }
+
+    private function expectSuccessfulPostWithResponseBody($body)
+    {
+        $response = $this->buildSuccessfulSoapResponseWithBody($body);
+        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
+    }
+
     public function testAddDlToDl()
     {
-        $getDlResponse = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<GetDistributionListResponse total="8" more="0" xmlns="urn:zimbraAdmin">
                     <dl dynamic="0" id="3800ee3c-8fdc-4395-92c6-8ebf26399d0e" name="all_members@testdomain1.co.za">
                         <a n="uid">all_members</a>
@@ -119,31 +135,15 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
                     </dl>
                 </GetDistributionListResponse>'
         );
-
-        $addDlMemberResponse = $this->buildSuccessfulSoapResponseWithBody(
-            '<AddDistributionListMemberResponse xmlns="urn:zimbraAdmin"/>'
-        );
-
-        $this->httpClient->shouldReceive('post')->times(2)->andReturnValues(
-            array(
-                $getDlResponse,
-                $addDlMemberResponse
-            )
-        );
-
+        $this->expectSuccessfulPostWithResponseBody('<AddDistributionListMemberResponse xmlns="urn:zimbraAdmin"/>');
 
         $id = $this->connector->getDlId('all_members@testdomain1.co.za');
         $this->connector->addDlMember($id, 'all_members@testdomain2.co.za');
     }
 
-    private function expectDelegatedAuth()
-    {
-        $this->httpClient->shouldReceive('post')->once()->andReturn($this->buildSuccessfulDelegateAuthResponse());
-    }
-
     public function testGetAllCoses()
     {
-        $gacResponse = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<GetAllCosResponse xmlns="urn:zimbraAdmin">
                     <cos id="150dbb00-ecba-431c-a239-98c69cf42b5f" name="amadeus">
                         <a n="zimbraFeatureNotebookEnabled">FALSE</a>
@@ -156,8 +156,6 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
                 </GetAllCosResponse>'
         );
 
-        $this->httpClient->shouldReceive('post')->once()->andReturn($gacResponse);
-
         $coses = $this->connector->getAllCoses();
 
         $this->assertEquals('amadeus', $coses[0]['name']);
@@ -166,12 +164,9 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
 
     public function testRevokeRight()
     {
-        $rvrResponse = $this->buildSuccessfulSoapResponseWithBody('<RevokeRightResponse xmlns="urn:zimbraAdmin"/>');
-        $this->httpClient->shouldReceive('post')->once()->andReturn($rvrResponse);
-
+        $this->expectSuccessfulPostWithResponseBody('<RevokeRightResponse xmlns="urn:zimbraAdmin"/>');
         $response = $this->connector->revokeRight('basic-pop-imap-2gb', 'cos',
             'zimbradomainadmins@fixture-test-portal.co.za', 'grp', 'listCos');
-
         $this->assertEquals('', $response);
     }
 
@@ -181,7 +176,7 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
      */
     public function testSoapFault()
     {
-        $rvrResponse = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<soap:Fault>
                     <soap:Code>
                         <soap:Value>soap:Sender</soap:Value>
@@ -201,8 +196,6 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
                 </soap:Fault>'
         );
 
-        $this->httpClient->shouldReceive('post')->once()->andReturn($rvrResponse);
-
         $this->connector->revokeRight('basic-pop-imap-2gb', 'cos', 'zimbradomainadmins@fixture-test-portal.co.za',
             'grp', 'listCos');
     }
@@ -210,36 +203,23 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
 
     public function testEnableArchive()
     {
-        $earResponse = $this->buildSuccessfulSoapResponseWithBody('<EnableArchiveResponse xmlns="urn:zimbraAdmin"/>');
-        $this->httpClient->shouldReceive('post')->once()->andReturn($earResponse);
-
+        $this->expectSuccessfulPostWithResponseBody('<EnableArchiveResponse xmlns="urn:zimbraAdmin"/>');
         $response = $this->connector->enableArchive('user1@testdomain3.co.za', 'user1@testdomain3.co.za.archive',
             'zimbra-archive-cos');
-
         $this->assertEquals('', $response);
-    }
-
-    public function testDelegateAuth()
-    {
-        $this->expectDelegatedAuth();
-        $response = $this->connector->delegateAuth('user1@testdomain2.co.za.archive');
-        $this->assertEquals('dummy_delegate_auth_token',
-            $response['authToken']);
-        $this->assertEquals('3600000', $response['lifetime']);
     }
 
     public function testAddArchiveReadFilterRule()
     {
         $this->expectDelegatedAuth();
-        $response = $this->buildSuccessfulSoapResponseWithBody('<ModifyFilterRulesResponse xmlns="urn:zimbraMail"/>');
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
+        $this->expectSuccessfulPostWithResponseBody('<ModifyFilterRulesResponse xmlns="urn:zimbraMail"/>');
         $this->connector->addArchiveReadFilterRule('user1@testdomain3.co.za.archive');
     }
 
     public function testGetFolder()
     {
         $this->expectDelegatedAuth();
-        $response = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<GetFolderResponse xmlns="urn:zimbraMail">
                     <folder rev="1" i4next="3" i4ms="1" ms="1" n="0" activesyncdisabled="0" l="1" id="2" s="0"
                             name="Inbox"
@@ -248,8 +228,6 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
                 </GetFolderResponse>'
         );
 
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
         $this->connector->getFolder('user1@testdomain3.co.za.archive', 2);
     }
 
@@ -257,7 +235,7 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
     {
         $this->expectDelegatedAuth();
         $accountName = 'user01@testdomain3.co.za';
-        $response = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<CreateFolderResponse xmlns="urn:zimbraMail">
                   <folder i4ms="16" rev="16" i4next="266" ms="16" l="1" uuid="6009ed8b-fc82-489c-97e3-3bd4080670e0"
                     n="0" luuid="1dcfb61c-90e9-4a64-91e4-dd8b48fd6898" activesyncdisabled="0" absFolderPath="/Test"
@@ -265,10 +243,7 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
                 </CreateFolderResponse>'
         );
 
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
         $id = $this->connector->createFolder($accountName, "Test", 1);
-
         $this->assertEquals(265, $id, "Incorrect folder ID returned");
     }
 
@@ -310,33 +285,25 @@ XML;
         $response = new Response($raw);
 
         $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
         $this->connector->createMountPoint('user1@testdomain3.co.za', 0, 'Archive', '/Inbox',
             'user1@testdomain3.co.za.archive', 'message');
     }
 
     public function testDisableArchive()
     {
-        $daResponse = $this->buildSuccessfulSoapResponseWithBody('<DisableArchiveResponse xmlns="urn:zimbraAdmin"/>');
-        $this->httpClient->shouldReceive('post')->once()->andReturn($daResponse);
-
+        $this->expectSuccessfulPostWithResponseBody('<DisableArchiveResponse xmlns="urn:zimbraAdmin"/>');
         $response = $this->connector->disableArchive('user1@testdomain2.co.za');
-
         $this->assertEquals('', $response);
     }
 
     public function testCreateGalSyncAccount()
     {
-        $response = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<CreateGalSyncAccountResponse xmlns="urn:zimbraAdmin">
                     <account id="224f142a-41ba-4aea-9005-ab1dcbc68f1c" name="galsync@test-cos.com"/>
                 </CreateGalSyncAccountResponse>'
         );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
         $response = $this->connector->createGalSyncAccount('galsync@test-cos.com', 'test-cos.com');
-
         $this->assertEquals(array(
             'account' => array(
                 '@value' => '',
@@ -350,7 +317,7 @@ XML;
 
     public function testCreateAliasDomain()
     {
-        $response = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<CreateDomainResponse xmlns="urn:zimbraAdmin">
                     <domain id="69e5e6c5-fb88-4ba3-acd3-c8139379b284" name="test-alias.com">
                         <a n="zimbraId">69e5e6c5-fb88-4ba3-acd3-c8139379b284</a>
@@ -360,17 +327,13 @@ XML;
                     </domain>
                 </CreateDomainResponse>'
         );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
         $response = $this->connector->createAliasDomain('test-alias.com', 'test.com');
-
         $this->assertEquals('69e5e6c5-fb88-4ba3-acd3-c8139379b284', $response);
     }
 
     public function testGetDomain()
     {
-        $response = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<GetDomainResponse xmlns="urn:zimbraAdmin">
                     <domain id="69e5e6c5-fb88-4ba3-acd3-c8139379b284" name="test-alias.com">
                         <a n="zimbraId">69e5e6c5-fb88-4ba3-acd3-c8139379b284</a>
@@ -381,11 +344,7 @@ XML;
                     </domain>
                 </GetDomainResponse>'
         );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
         $response = $this->connector->getDomain('test-alias.com');
-
         $this->assertEquals('69e5e6c5-fb88-4ba3-acd3-c8139379b284', $response['zimbraId']);
         $this->assertEquals('test-alias.com', $response['zimbraDomainName']);
         $this->assertEquals('active', $response['zimbraDomainStatus']);
@@ -395,7 +354,7 @@ XML;
 
     public function testGetAccountsOneAccount()
     {
-        $response = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<GetAllAccountsResponse xmlns="urn:zimbraAdmin">
                     <account name="test-account@test-domain.com" id="bc85eaf1-dfe0-4879-b5e0-314979ae0009">
                         <a n="attribute-1">value-1</a>
@@ -404,8 +363,6 @@ XML;
                     </account>
                 </GetAllAccountsResponse>'
         );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
 
         $response = $this->connector->getAccounts('synaq.com');
         $this->assertArrayHasKey('test-account@test-domain.com', $response);
@@ -420,7 +377,7 @@ XML;
 
     public function testGetAccountMultiple()
     {
-        $response = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<GetAllAccountsResponse xmlns="urn:zimbraAdmin">
                     <account name="test-account@test-domain.com" id="dummy-id">
                         <a n="attribute-1">value-1</a>
@@ -434,8 +391,6 @@ XML;
                     </account>
                 </GetAllAccountsResponse>'
         );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
 
         $response = $this->connector->getAccounts('synaq.com');
         $this->assertArrayHasKey('test-account@test-domain.com', $response);
@@ -459,14 +414,11 @@ XML;
 
     public function testCreateDomain()
     {
-        $response = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<CreateDomainResponse xmlns="urn:zimbraAdmin">
                     <domain id="dummy-domain-id" name="dummy-domain.com"/>
                 </CreateDomainResponse>'
         );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
         $attr = array(
             'zimbraDomainStatus' => 'active',
             'zimbraPrefTimeZoneId' => '(GMT+02.00) Harare / Pretoria',
@@ -481,13 +433,11 @@ XML;
 
     public function testCreateDl()
     {
-        $response = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<CreateDistributionListResponse xmlns="urn:zimbraAdmin">
                     <dl id="dummy-dl-id" name="zimbradomainadmins@dummy-domain.com"/>
                 </CreateDistributionListResponse>'
         );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
 
         $attr = array(
             'zimbraHideInGal' => 'TRUE',
@@ -506,17 +456,14 @@ XML;
 
     public function testGrantRight()
     {
-        $response = $this->buildSuccessfulSoapResponseWithBody('<GrantRightResponse xmlns="urn:zimbraAdmin"/>');
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
+        $this->expectSuccessfulPostWithResponseBody('<GrantRightResponse xmlns="urn:zimbraAdmin"/>');
         $this->connector->grantRight('dummy-domain.com', 'domain', 'zimbradomainadmins@dummy-domain.com', 'grp',
             'getAccount', 0);
     }
 
     public function testCreateMailbox()
     {
-        $response = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<CreateAccountResponse xmlns="urn:zimbraAdmin">
                     <account id="dummy-account-id" name="test-account@dummy-domain.com">
                         <a n="zimbraMailHost">sample-host.sample-domain.com</a>
@@ -524,9 +471,6 @@ XML;
                     </account>
                 </CreateAccountResponse>'
         );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
         $attr = array(
             'displayName' => 'Joe Schmoe',
             'givenName' => 'Joe',
@@ -538,9 +482,7 @@ XML;
             'description' => 'dummy description',
             'company' => 'Acme Ltd'
         );
-
         $id = $this->connector->createAccount('test-account@dummy-domain.com', 'dummy-password', $attr, $returnAttrs);
-
         $this->assertEquals('dummy-account-id', $id);
         $this->assertInternalType('array', $returnAttrs, "Return attributes not array");
         $this->assertArrayHasKey('zimbraMailHost', $returnAttrs, "Zimbra mail host not returned");
@@ -552,7 +494,7 @@ XML;
 
     public function testCreateMailboxIgnoreProperties()
     {
-        $response = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<CreateAccountResponse xmlns="urn:zimbraAdmin">
                     <account id="dummy-account-id" name="test-account@dummy-domain.com">
                         <a n="zimbraMailHost">sample-host.sample-domain.com</a>
@@ -560,9 +502,6 @@ XML;
                     </account>
                 </CreateAccountResponse>'
         );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
         $attr = array(
             'displayName' => 'Joe Schmoe',
             'givenName' => 'Joe',
@@ -574,25 +513,20 @@ XML;
             'description' => 'dummy description',
             'company' => 'Acme Ltd'
         );
-
         $id = $this->connector->createAccount('test-account@dummy-domain.com', 'dummy-password', $attr);
-
         $this->assertEquals('dummy-account-id', $id);
     }
 
     public function testAddDlMember()
     {
-        $response = $this->buildSuccessfulSoapResponseWithBody('<AddDistributionListMemberResponse xmlns="urn:zimbraAdmin"/>');
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
+        $this->expectSuccessfulPostWithResponseBody('<AddDistributionListMemberResponse xmlns="urn:zimbraAdmin"/>');
         $this->connector->addDlMember('dummy-dl-id', 'test-account@dummy-domain.com');
     }
 
     public function testGetAccountQuotaUsed()
     {
         $this->expectDelegatedAuth();
-        $response = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<GetInfoResponse docSizeLimit="10485760" attSizeLimit="10240000" xmlns="urn:zimbraAccount">
                     <used>932</used>
                     <attrs>
@@ -601,17 +535,14 @@ XML;
                     </attrs>
                 </GetInfoResponse>'
         );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
         $quota = $this->connector->getAccountQuotaUsed('test@test-domain19.com');
-
         $this->assertEquals('932/0', $quota);
     }
 
     public function testCreateContact()
     {
         $this->expectDelegatedAuth();
-        $getFoldersResponse = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<GetFolderResponse xmlns="urn:zimbraMail">
                     <folder i4ms="1" rev="1" i4next="2" ms="1" l="11" uuid="ef77d0ed-8f27-4c49-98d1-906ccdb5dda4" n="0"
                             luuid="03bef865-57aa-44ca-bc85-922b03f742f5" activesyncdisabled="0" absFolderPath="/" s="0"
@@ -626,7 +557,7 @@ XML;
                 </GetFolderResponse>'
         );
 
-        $createContactResponse = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<CreateContactResponse xmlns="urn:zimbraMail">
             <cn fileAsStr="last, first" rev="181" d="1424264251000" id="262" l="7">
                 <a n="firstName">first</a>
@@ -635,17 +566,8 @@ XML;
             </cn>
         </CreateContactResponse>'
         );
-
-        $this->httpClient->shouldReceive('post')->times(2)->andReturnValues(
-            array(
-                $getFoldersResponse,
-                $createContactResponse
-            )
-        );
-
         $id = $this->connector->createContact('test@test.com',
             array('firstName' => 'first', 'lastName' => 'last', 'email' => 'test@test.com'), null);
-
         $this->assertEquals('262', $id);
     }
 
@@ -653,7 +575,7 @@ XML;
     {
         $this->expectDelegatedAuth();
         $accountName = 'test@test-domain19.com';
-        $createContactResponse = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<CreateContactResponse xmlns="urn:zimbraMail">
                     <cn fileAsStr="last, first" rev="181" d="1424264251000" id="262" l="13">
                         <a n="firstName">first</a>
@@ -662,7 +584,6 @@ XML;
                     </cn>
                 </CreateContactResponse>'
         );
-        $this->httpClient->shouldReceive('post')->once()->andReturn($createContactResponse);
         $this->connector->createContact($accountName,
             array('firstName' => 'first', 'lastName' => 'last', 'email' => 'test@test.com'), 13);
     }
@@ -670,45 +591,35 @@ XML;
     public function testCreateSignature()
     {
         $this->expectDelegatedAuth();
-        $csResponse = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<CreateSignatureResponse xmlns="urn:zimbraAccount">
             <signature name="Primary" id="b7f7d8d2-da88-4da4-8572-84f1408f0696"/>
         </CreateSignatureResponse>'
         );
-        $this->httpClient->shouldReceive('post')->once()->andReturn($csResponse);
-
         $id = $this->connector->createSignature('test@test-domain19.com', 'Primary', 'text/plain', 'Signature content');
         $this->assertEquals('b7f7d8d2-da88-4da4-8572-84f1408f0696', $id);
     }
 
     public function testRenameAccount()
     {
-
-        $response = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<RenameAccountResponse xmlns="urn:zimbraAccount">
             <account name="updated-test2@displayname2.com" id="dummy-id"/>
         </RenameAccountResponse>'
         );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
         $id = 'dummy-id';
         $newAddress = 'updated-test2@displayname1.com';
-
         $this->connector->renameAccount($id, $newAddress);
     }
 
     public function testGetAllTags()
     {
         $this->expectDelegatedAuth();
-        $response = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<GetTagResponse xmlns="urn:zimbraMail">
       <tag color="9" name="tag1" id="cc024fcf-ef49-4b71-9948-f66fb48a0252:264" n="1"/>
     </GetTagResponse>'
         );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
         $tags = $this->connector->getAllTags('test@test.com');
 
         $this->assertArrayHasKey(0, $tags);
@@ -723,17 +634,13 @@ XML;
     public function testGetAllTagsMultiple()
     {
         $this->expectDelegatedAuth();
-        $response = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<GetTagResponse xmlns="urn:zimbraMail">
       <tag color="9" name="tag1" id="cc024fcf-ef49-4b71-9948-f66fb48a0252:264" n="1"/>
       <tag color="9" name="tag2" id="tag-id:265" n="1"/>
     </GetTagResponse>'
         );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
         $tags = $this->connector->getAllTags('test@test.com');
-
         $this->assertArrayHasKey(0, $tags);
         $this->assertArrayHasKey('color', $tags[0]);
         $this->assertEquals('9', $tags[0]['color']);
@@ -754,41 +661,30 @@ XML;
     public function testCreateTag()
     {
         $this->expectDelegatedAuth();
-        $response = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<CreateTagResponse xmlns="urn:zimbraMail">
       <tag name="tag4" id="tag-id:281"/>
     </CreateTagResponse>'
         );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
         $tagId = $this->connector->createTag('test@test.com', 'tag4');
-
         $this->assertEquals('tag-id:281', $tagId);
     }
 
     public function testTagContact()
     {
         $this->expectDelegatedAuth();
-        $response = $this->buildSuccessfulSoapResponseWithBody(
+        $this->expectSuccessfulPostWithResponseBody(
             '<ContactActionResponse xmlns="urn:zimbraMail">
 <action op="tag" id="300"/>
 </ContactActionResponse>'
         );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
         $contactId = '300';
-
         $this->connector->tagContact('test@test.com', $contactId, '281');
     }
 
     public function testSetPassword()
     {
-        $response = $this->buildSuccessfulSoapResponseWithBody('<SetPasswordResponse xmlns="urn:zimbraAdmin"/>');
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
+        $this->expectSuccessfulPostWithResponseBody('<SetPasswordResponse xmlns="urn:zimbraAdmin"/>');
         $this->connector->setPassword('cc024fcf-ef49-4b71-9948-f66fb48a0252', '!@synaq()ABC');
     }
 }
