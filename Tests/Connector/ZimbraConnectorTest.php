@@ -2105,4 +2105,32 @@ XML;
 
         $this->connector->tagContact('test@test.com', $contactId, '281');
     }
+
+    public function testSetPassword()
+    {
+        if ($this->mock) {
+            $raw = $this->httpHead;
+            $raw .= <<<'XML'
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+<soap:Header>
+<context xmlns="urn:zimbra"><change token="406"/></context>
+</soap:Header>
+<soap:Body>
+<SetPasswordResponse xmlns="urn:zimbraAdmin"/>
+</soap:Body>
+</soap:Envelope>
+XML;
+            $response = new Response($raw);
+
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
+                array(
+                    $this->loginResponse,
+                    $response
+                )
+            );
+        }
+        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
+
+        $this->connector->setPassword('cc024fcf-ef49-4b71-9948-f66fb48a0252', '!@synaq()ABC');
+    }
 }

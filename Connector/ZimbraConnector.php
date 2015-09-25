@@ -950,4 +950,12 @@ class ZimbraConnector
             true
         );
     }
+
+    public function setPassword($accountId, $newPassword)
+    {
+        $this->request('SetPassword', array(
+            'newPassword' => $newPassword,
+            'id' => $accountId
+        ));
+    }
 }
