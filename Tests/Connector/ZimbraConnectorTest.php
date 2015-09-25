@@ -2,10 +2,10 @@
 
 namespace Synaq\ZasaBundle\Tests\Connector;
 
-use Synaq\CurlBundle\Curl\Response;
-use Synaq\ZasaBundle\Connector\ZimbraConnector;
-use Synaq\CurlBundle\Curl\Wrapper;
 use Mockery as m;
+use Synaq\CurlBundle\Curl\Response;
+use Synaq\CurlBundle\Curl\Wrapper;
+use Synaq\ZasaBundle\Connector\ZimbraConnector;
 
 class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
 {
@@ -25,9 +25,9 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
         $this->httpClient = \Mockery::mock('Synaq\CurlBundle\Curl\Wrapper');
         $this->httpClient->shouldReceive('post')->once()->andReturn($this->buildSuccessfulAdminAuthResponse());
 
-        $server = 'https://myserver.com:7071/service/admin/soap';
-        $username = 'admin@myserver.com';
-        $password = 'mypassword';
+        $server = 'https://my-server.com:7071/service/admin/soap';
+        $username = 'admin@my-server.com';
+        $password = 'my-password';
         $this->connector = new ZimbraConnector($this->httpClient, $server, $username, $password);
         //uncomment the below to use a real server,
         //replacing the credentials with with your server auth details.
@@ -513,7 +513,7 @@ XML;
             'resourceListView',
             'DLListView'
         );
-        $id = $this->connector->createDl('zimbradoaminadmins@dummy-domain.com', $attr, $views);
+        $id = $this->connector->createDl('zimbradomainadmins@dummy-domain.com', $attr, $views);
         $this->assertEquals('dummy-dl-id', $id);
     }
 
