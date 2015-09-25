@@ -174,7 +174,7 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
      * @expectedException \Synaq\ZasaBundle\Exception\SoapFaultException
      * @expectedExceptionMessage Zimbra Soap Fault: no such grant: [grantee name=zimbradomainadmins@fixture-test-portal.co.za, grantee id=19a65c8c-aa73-4014-9165-b535970d95f0, grantee type=grp, right=listCos]
      */
-    public function testRevokeRightFault()
+    public function testSoapFault()
     {
         $rvrResponse = $this->buildSuccessfulSoapResponseWithBody(
             '<soap:Fault>
@@ -214,40 +214,6 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('', $response);
     }
 
-    /**
-     * @expectedException \Synaq\ZasaBundle\Exception\SoapFaultException
-     * @expectedExceptionMessage Zimbra Soap Fault: email address already exists: user1@testdomain3.co.za.archive, at DN: uid=user1,ou=people,dc=testdomain3,dc=co,dc=za,dc=archive
-     */
-    public function testEnableArchiveFault()
-    {
-        $earResponse = $this->buildSuccessfulSoapResponseWithBody(
-            '<soap:Fault>
-                    <soap:Code>
-                        <soap:Value>soap:Sender</soap:Value>
-                    </soap:Code>
-                    <soap:Reason>
-                        <soap:Text>email address already exists: user1@testdomain3.co.za.archive, at DN: uid=user1,ou=people,dc=testdomain3,dc=co,dc=za,dc=archive
-                        </soap:Text>
-                    </soap:Reason>
-                    <soap:Detail>
-                        <Error xmlns="urn:zimbra">
-                            <Code>account.ACCOUNT_EXISTS</Code>
-                            <Trace>
-                                qtp1290340102-35061:https://192.168.3.104:7071/service/admin/soap:1384408651392:3545528d1a7c45af
-                            </Trace>
-                        </Error>
-                    </soap:Detail>
-                </soap:Fault>'
-        );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($earResponse);
-
-        $response = $this->connector->enableArchive('user1@testdomain3.co.za', 'user1@testdomain3.co.za.archive',
-            'zimbra-archive-cos');
-
-        $this->assertEquals('', $response);
-    }
-
     public function testDelegateAuth()
     {
         $this->httpClient->shouldReceive('post')->once()->andReturn($this->buildSuccessfulDelegateAuthResponse());
@@ -256,36 +222,6 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('dummy_delegate_auth_token',
             $response['authToken']);
         $this->assertEquals('3600000', $response['lifetime']);
-    }
-
-    /**
-     * @expectedException \Synaq\ZasaBundle\Exception\SoapFaultException
-     * @expectedExceptionMessage Zimbra Soap Fault: no such account: user1@testdomain2123123123.co.za.archive
-     */
-    public function testDelegateAuthFault()
-    {
-        $response = $this->buildSuccessfulSoapResponseWithBody(
-            '<soap:Fault>
-                    <soap:Code>
-                        <soap:Value>soap:Sender</soap:Value>
-                    </soap:Code>
-                    <soap:Reason>
-                        <soap:Text>no such account: user1@testdomain2123123123.co.za.archive</soap:Text>
-                    </soap:Reason>
-                    <soap:Detail>
-                        <Error xmlns="urn:zimbra">
-                            <Code>account.NO_SUCH_ACCOUNT</Code>
-                            <Trace>
-                                qtp1290340102-35149:https://192.168.3.104:7071/service/admin/soap:1384410921923:3545528d1a7c45af
-                            </Trace>
-                        </Error>
-                    </soap:Detail>
-                </soap:Fault>'
-        );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($response);
-
-        $this->connector->delegateAuth('user1@testdomain2123123123.co.za.archive');
     }
 
     public function testAddArchiveReadFilterRule()
@@ -300,41 +236,6 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->connector->addArchiveReadFilterRule('user1@testdomain3.co.za.archive');
-    }
-
-    /**
-     * @expectedException \Synaq\ZasaBundle\Exception\SoapFaultException
-     * @expectedExceptionMessage Zimbra Soap Fault: no such account: user1@testdomain3123.co.za.archive
-     */
-    public function testAddArchiveReadFilterRuleFault()
-    {
-        $response = $this->buildSuccessfulSoapResponseWithBody(
-            '<soap:Fault>
-                    <soap:Code>
-                        <soap:Value>soap:Sender</soap:Value>
-                    </soap:Code>
-                    <soap:Reason>
-                        <soap:Text>no such account: user1@testdomain3123.co.za.archive</soap:Text>
-                    </soap:Reason>
-                    <soap:Detail>
-                        <Error xmlns="urn:zimbra">
-                            <Code>account.NO_SUCH_ACCOUNT</Code>
-                            <Trace>
-                                qtp1290340102-35167:https://192.168.3.104:7071/service/admin/soap:1384411417600:3545528d1a7c45af
-                            </Trace>
-                        </Error>
-                    </soap:Detail>
-                </soap:Fault>'
-        );
-
-        $this->httpClient->shouldReceive('post')->times(2)->andReturnValues(
-            array(
-                $this->buildSuccessfulDelegateAuthResponse(),
-                $response
-            )
-        );
-
-        $this->connector->addArchiveReadFilterRule('user1@testdomain3123.co.za.archive');
     }
 
     public function testGetFolder()
@@ -355,41 +256,6 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->connector->getFolder('user1@testdomain3.co.za.archive', 2);
-    }
-
-    /**
-     * @expectedException \Synaq\ZasaBundle\Exception\SoapFaultException
-     * @expectedExceptionMessage Zimbra Soap Fault: no such account: user1@testdomain3123.co.za.archive
-     */
-    public function testGetFolderFault()
-    {
-        $response = $this->buildSuccessfulSoapResponseWithBody(
-            '<soap:Fault>
-                    <soap:Code>
-                        <soap:Value>soap:Sender</soap:Value>
-                    </soap:Code>
-                    <soap:Reason>
-                        <soap:Text>no such account: user1@testdomain3123.co.za.archive</soap:Text>
-                    </soap:Reason>
-                    <soap:Detail>
-                        <Error xmlns="urn:zimbra">
-                            <Code>account.NO_SUCH_ACCOUNT</Code>
-                            <Trace>
-                                qtp1290340102-35167:https://192.168.3.104:7071/service/admin/soap:1384411417600:3545528d1a7c45af
-                            </Trace>
-                        </Error>
-                    </soap:Detail>
-                </soap:Fault>'
-        );
-
-        $this->httpClient->shouldReceive('post')->times(2)->andReturnValues(
-            array(
-                $this->buildSuccessfulDelegateAuthResponse(),
-                $response
-            )
-        );
-
-        $this->connector->getFolder('user1@testdomain31234.co.za.archive', 2);
     }
 
     public function testCreateFolder()
@@ -462,81 +328,12 @@ XML;
             'user1@testdomain3.co.za.archive', 'message');
     }
 
-    /**
-     * @expectedException \Synaq\ZasaBundle\Exception\SoapFaultException
-     * @expectedExceptionMessage Zimbra Soap Fault: object with that name already exists: Archive
-     */
-    public function testCreateMountPointFault()
-    {
-        $response = $this->buildSuccessfulSoapResponseWithBody(
-            '<soap:Fault>
-                    <soap:Code>
-                        <soap:Value>soap:Sender</soap:Value>
-                    </soap:Code>
-                    <soap:Reason>
-                        <soap:Text>object with that name already exists: Archive</soap:Text>
-                    </soap:Reason>
-                    <soap:Detail>
-                        <Error xmlns="urn:zimbra">
-                            <Code>mail.ALREADY_EXISTS</Code>
-                            <Trace>
-                                qtp1290340102-35193:https://192.168.3.104:7071/service/admin/soap:1384412357849:3545528d1a7c45af
-                            </Trace>
-                            <a t="STR" n="name">Archive</a>
-                        </Error>
-                    </soap:Detail>
-                </soap:Fault>'
-        );
-
-        $this->httpClient->shouldReceive('post')->times(2)->andReturnValues(
-            array(
-                $this->buildSuccessfulDelegateAuthResponse(),
-                $response
-            )
-        );
-
-        $this->connector->createMountPoint('user1@testdomain3.co.za', 0, 'Archive', '/Inbox',
-            'user1@testdomain3.co.za.archive', 'message');
-    }
-
     public function testDisableArchive()
     {
         $daResponse = $this->buildSuccessfulSoapResponseWithBody('<DisableArchiveResponse xmlns="urn:zimbraAdmin"/>');
         $this->httpClient->shouldReceive('post')->once()->andReturn($daResponse);
 
         $response = $this->connector->disableArchive('user1@testdomain2.co.za');
-
-        $this->assertEquals('', $response);
-    }
-
-    /**
-     * @expectedException \Synaq\ZasaBundle\Exception\SoapFaultException
-     * @expectedExceptionMessage Zimbra Soap Fault: system failure: java.lang.NullPointerException
-     */
-    public function testDisableArchiveFault()
-    {
-        $daResponse = $this->buildSuccessfulSoapResponseWithBody(
-            '<soap:Fault>
-                    <soap:Code>
-                        <soap:Value>soap:Receiver</soap:Value>
-                    </soap:Code>
-                    <soap:Reason>
-                        <soap:Text>system failure: java.lang.NullPointerException</soap:Text>
-                    </soap:Reason>
-                    <soap:Detail>
-                        <Error xmlns="urn:zimbra">
-                            <Code>service.FAILURE</Code>
-                            <Trace>
-                                qtp1290340102-35217:https://192.168.3.104:7071/service/admin/soap:1384412667686:3545528d1a7c45af
-                            </Trace>
-                        </Error>
-                    </soap:Detail>
-                </soap:Fault>'
-        );
-
-        $this->httpClient->shouldReceive('post')->once()->andReturn($daResponse);
-
-        $response = $this->connector->disableArchive('user1@testdomain31234.co.za');
 
         $this->assertEquals('', $response);
     }
