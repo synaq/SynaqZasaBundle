@@ -11,7 +11,7 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
 {
 
     /**
-     * @var Wrapper | m\MockInterface
+     * @var Wrapper | m\Mock
      */
     private $mockClient;
 
@@ -50,46 +50,13 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
      */
     private $delegateResponse;
 
-    /**
-     * @var string
-     */
-    private $httpHead;
-
 
     public function setup()
     {
         if ($this->mock) {
             $this->mockClient = \Mockery::mock('Synaq\CurlBundle\Curl\Wrapper');
 
-            $this->httpHead = "HTTP/1.1 200 OK\r\n";
-            $this->httpHead .= "Date: Wed, 07 Aug 2013 11:09:37 GMT\r\n";
-            $this->httpHead .= "Expires: Thu, 01 Jan 1970 00:00:00 GMT\r\n";
-            $this->httpHead .= "Content-Type: text/xml;charset=UTF-8\r\n";
-            $this->httpHead .= "Cache-Control: no-store, no-cache\r\n";
-            $this->httpHead .= "Content-Length: 519\r\n";
-            $this->httpHead .= "\r\n";
-
-            $loginRaw = $this->httpHead;
-            $loginRaw .= <<<'XML'
-                <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
-                    <soap:Header>
-                        <context xmlns="urn:zimbra">
-                            <change token="14213"/>
-                        </context>
-                    </soap:Header>
-                    <soap:Body>
-                        <AuthResponse xmlns="urn:zimbraAdmin">
-                            <authToken>
-                                0_d5b6d1b0eeb17438e16fed1b46964f21b1a760d7_69643d33363a30313639323938332d393931382d343861322d613663332d3661323139316630363466643b6578703d31333a313337353931363937373439353b61646d696e3d313a313b747970653d363a7a696d6272613b
-                            </authToken>
-                            <lifetime>43200000</lifetime>
-                        </AuthResponse>
-                    </soap:Body>
-                </soap:Envelope>
-XML;
-            $this->loginResponse = new Response($loginRaw);
-
-            $delegateRaw = $this->httpHead;
+            $delegateRaw = $this->getRawHttpOkHeader();
             $delegateRaw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -108,15 +75,54 @@ XML;
                 </soap:Envelope>
 XML;
             $this->delegateResponse = new Response($delegateRaw);
+            $this->mockClient->shouldReceive('post')->once()->andReturn($this->getSuccessfulAdminAuthResponse());
+            $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
         } else {
             $this->mockClient = new Wrapper(null, false, true, false, array('CURLOPT_RETURNTRANSFER' => true, 'CURLOPT_SSL_VERIFYPEER' => false, 'CURLOPT_SSL_VERIFYHOST' => false), array());
+            $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
         }
+    }
+
+    private function getRawHttpOkHeader()
+    {
+        $httpHead = "HTTP/1.1 200 OK\r\n";
+        $httpHead .= "Date: Wed, 07 Aug 2013 11:09:37 GMT\r\n";
+        $httpHead .= "Expires: Thu, 01 Jan 1970 00:00:00 GMT\r\n";
+        $httpHead .= "Content-Type: text/xml;charset=UTF-8\r\n";
+        $httpHead .= "Cache-Control: no-store, no-cache\r\n";
+        $httpHead .= "Content-Length: 519\r\n";
+        $httpHead .= "\r\n";
+
+        return $httpHead;
+    }
+
+    private function getSuccessfulAdminAuthResponse()
+    {
+        $loginRaw = $this->getRawHttpOkHeader();
+        $loginRaw .= <<<'XML'
+                <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+                    <soap:Header>
+                        <context xmlns="urn:zimbra">
+                            <change token="14213"/>
+                        </context>
+                    </soap:Header>
+                    <soap:Body>
+                        <AuthResponse xmlns="urn:zimbraAdmin">
+                            <authToken>
+                                0_d5b6d1b0eeb17438e16fed1b46964f21b1a760d7_69643d33363a30313639323938332d393931382d343861322d613663332d3661323139316630363466643b6578703d31333a313337353931363937373439353b61646d696e3d313a313b747970653d363a7a696d6272613b
+                            </authToken>
+                            <lifetime>43200000</lifetime>
+                        </AuthResponse>
+                    </soap:Body>
+                </soap:Envelope>
+XML;
+        return new Response($loginRaw);
     }
 
     public function testAddDlToDl()
     {
         if ($this->mock) {
-            $getDl = $this->httpHead;
+            $getDl = $this->getRawHttpOkHeader();
             $getDl .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -151,7 +157,7 @@ XML;
 XML;
             $getDlResponse = new Response($getDl);
 
-            $add = $this->httpHead;
+            $add = $this->getRawHttpOkHeader();
             $add .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -165,16 +171,13 @@ XML;
 
             $addDlMemberResponse = new Response($add);
 
-            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->loginResponse,
                     $getDlResponse,
                     $addDlMemberResponse
                 )
             );
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $id = $this->connector->getDlId('all_members@testdomain1.co.za');
         $this->connector->addDlMember($id, 'all_members@testdomain2.co.za');
@@ -184,7 +187,7 @@ XML;
     {
         if ($this->mock) {
             //mocks
-            $gac = $this->httpHead;
+            $gac = $this->getRawHttpOkHeader();
             $gac .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -208,15 +211,8 @@ XML;
 XML;
             $gacResponse = new Response($gac);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $gacResponse,
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($gacResponse);
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $coses = $this->connector->getAllCoses();
 
@@ -228,7 +224,7 @@ XML;
     {
         if ($this->mock) {
             //mocks
-            $rvr = $this->httpHead;
+            $rvr = $this->getRawHttpOkHeader();
             $rvr .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -243,15 +239,8 @@ XML;
 XML;
             $rvrResponse = new Response($rvr);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $rvrResponse
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($rvrResponse);
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $response = $this->connector->revokeRight('basic-pop-imap-2gb', 'cos', 'zimbradomainadmins@fixture-test-portal.co.za', 'grp', 'listCos');
 
@@ -266,7 +255,7 @@ XML;
     {
         if ($this->mock) {
             //mocks
-            $rvr = $this->httpHead;
+            $rvr = $this->getRawHttpOkHeader();
             $rvr .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -297,15 +286,8 @@ XML;
 XML;
             $rvrResponse = new Response($rvr);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $rvrResponse
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($rvrResponse);
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $this->connector->revokeRight('basic-pop-imap-2gb', 'cos', 'zimbradomainadmins@fixture-test-portal.co.za', 'grp', 'listCos');
     }
@@ -315,7 +297,7 @@ XML;
     {
         if ($this->mock) {
             //mocks
-            $ear = $this->httpHead;
+            $ear = $this->getRawHttpOkHeader();
             $ear .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -330,15 +312,8 @@ XML;
 XML;
             $earResponse = new Response($ear);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $earResponse
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($earResponse);
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $response = $this->connector->enableArchive('user1@testdomain3.co.za', 'user1@testdomain3.co.za.archive', 'zimbra-archive-cos');
 
@@ -353,7 +328,7 @@ XML;
     {
         if ($this->mock) {
             //mocks
-            $ear = $this->httpHead;
+            $ear = $this->getRawHttpOkHeader();
             $ear .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -384,15 +359,8 @@ XML;
 XML;
             $earResponse = new Response($ear);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $earResponse
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($earResponse);
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $response = $this->connector->enableArchive('user1@testdomain3.co.za', 'user1@testdomain3.co.za.archive', 'zimbra-archive-cos');
 
@@ -402,15 +370,8 @@ XML;
     public function testDelegateAuth()
     {
         if ($this->mock) {
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $this->delegateResponse
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($this->delegateResponse);
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $response = $this->connector->delegateAuth('user1@testdomain2.co.za.archive');
         $this->assertEquals('0_78aa1c994ad070a169746182fc26bda32ef0c172_69643d33363a38313465383033322d663364322d343230'
@@ -428,7 +389,7 @@ XML;
     {
         if ($this->mock) {
             //mocks
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -458,15 +419,8 @@ XML;
 XML;
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $response
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($response);
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $this->connector->delegateAuth('user1@testdomain2123123123.co.za.archive');
     }
@@ -475,7 +429,7 @@ XML;
     {
         if ($this->mock) {
             //mocks
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -490,16 +444,13 @@ XML;
 XML;
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->loginResponse,
                     $this->delegateResponse,
                     $response
                 )
             );
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $this->connector->addArchiveReadFilterRule('user1@testdomain3.co.za.archive');
     }
@@ -512,7 +463,7 @@ XML;
     {
         if ($this->mock) {
             //mocks
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -542,16 +493,13 @@ XML;
 XML;
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->loginResponse,
                     $this->delegateResponse,
                     $response
                 )
             );
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $this->connector->addArchiveReadFilterRule('user1@testdomain3123.co.za.archive');
     }
@@ -560,7 +508,7 @@ XML;
     {
         if ($this->mock) {
             //mocks
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -579,18 +527,15 @@ XML;
 XML;
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->loginResponse,
                     $this->delegateResponse,
                     $response
                 )
             );
         }
 
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
-
-        $folder = $this->connector->getFolder('user1@testdomain3.co.za.archive', 2);
+        $this->connector->getFolder('user1@testdomain3.co.za.archive', 2);
     }
 
     /**
@@ -601,7 +546,7 @@ XML;
     {
         if ($this->mock) {
             //mocks
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -631,16 +576,13 @@ XML;
 XML;
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->loginResponse,
                     $this->delegateResponse,
                     $response
                 )
             );
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $this->connector->getFolder('user1@testdomain31234.co.za.archive', 2);
     }
@@ -650,7 +592,7 @@ XML;
         $accountName = 'user01@testdomain3.co.za';
 
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
   <soap:Header>
@@ -677,17 +619,14 @@ XML;
 
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->loginResponse,
                     $this->delegateResponse,
                     $response
                 )
             );
 
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $id = $this->connector->createFolder($accountName, "Test", 1);
 
@@ -698,7 +637,7 @@ XML;
     {
         if ($this->mock) {
             //mocks
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -732,16 +671,13 @@ XML;
 XML;
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->loginResponse,
                     $this->delegateResponse,
                     $response
                 )
             );
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $this->connector->createMountPoint('user1@testdomain3.co.za', 0, 'Archive', '/Inbox', 'user1@testdomain3.co.za.archive', 'message');
     }
@@ -754,7 +690,7 @@ XML;
     {
         if ($this->mock) {
             //mocks
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -785,16 +721,13 @@ XML;
 XML;
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->loginResponse,
                     $this->delegateResponse,
                     $response
                 )
             );
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $this->connector->createMountPoint('user1@testdomain3.co.za', 0, 'Archive', '/Inbox', 'user1@testdomain3.co.za.archive', 'message');
     }
@@ -803,7 +736,7 @@ XML;
     {
         if ($this->mock) {
             //mocks
-            $da = $this->httpHead;
+            $da = $this->getRawHttpOkHeader();
             $da .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -818,15 +751,8 @@ XML;
 XML;
             $daResponse = new Response($da);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $daResponse
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($daResponse);
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $response = $this->connector->disableArchive('user1@testdomain2.co.za');
 
@@ -841,7 +767,7 @@ XML;
     {
         if ($this->mock) {
             //mocks
-            $da = $this->httpHead;
+            $da = $this->getRawHttpOkHeader();
             $da .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -871,15 +797,8 @@ XML;
 XML;
             $daResponse = new Response($da);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $daResponse
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($daResponse);
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $response = $this->connector->disableArchive('user1@testdomain31234.co.za');
 
@@ -890,7 +809,7 @@ XML;
     {
         if ($this->mock) {
             //mocks
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope/">
                     <soap:Header>
@@ -907,15 +826,8 @@ XML;
 XML;
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $response
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($response);
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $response = $this->connector->createGalSyncAccount('galsync@test-cos.com', 'test-cos.com');
 
@@ -933,7 +845,7 @@ XML;
     public function testCreateAliasDomain()
     {
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope/">
                     <soap:Header>
@@ -955,15 +867,8 @@ XML;
 XML;
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $response
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($response);
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $response = $this->connector->createAliasDomain('test-alias.com', 'test.com');
 
@@ -973,7 +878,7 @@ XML;
     public function testGetDomain()
     {
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope/">
                     <soap:Header>
@@ -996,15 +901,8 @@ XML;
 XML;
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $response
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($response);
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $response = $this->connector->getDomain('test-alias.com');
 
@@ -1018,7 +916,7 @@ XML;
     public function testGetAccountsOneAccount()
     {
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -1037,15 +935,8 @@ XML;
 XML;
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $response
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($response);
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $response = $this->connector->getAccounts('synaq.com');
         $this->assertArrayHasKey('test-account@test-domain.com', $response);
@@ -1061,7 +952,7 @@ XML;
     public function testGetAccountMultiple()
     {
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -1086,15 +977,8 @@ XML;
 
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $response
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($response);
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $response = $this->connector->getAccounts('synaq.com');
         $this->assertArrayHasKey('test-account@test-domain.com', $response);
@@ -1119,7 +1003,7 @@ XML;
     public function testCreateDomain()
     {
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -1135,15 +1019,8 @@ XML;
 
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $response
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($response);
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $attr = array(
             'zimbraDomainStatus' => 'active',
@@ -1160,7 +1037,7 @@ XML;
     public function testCreateDl()
     {
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -1176,15 +1053,9 @@ XML;
 
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $response
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($response);
         }
 
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
         $attr = array(
             'zimbraHideInGal'=> 'TRUE',
             'zimbraIsAdminGroup' => 'TRUE',
@@ -1203,7 +1074,7 @@ XML;
     public function testGrantRight()
     {
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -1217,22 +1088,16 @@ XML;
 
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $response
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($response);
         }
 
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
         $this->connector->grantRight('dummy-domain.com', 'domain', 'zimbradomainadmins@dummy-domain.com', 'grp', 'getAccount', 0);
     }
 
     public function testCreateMailbox()
     {
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -1251,15 +1116,9 @@ XML;
 
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $response
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($response);
         }
 
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
         $attr = array(
             'displayName' => 'Joe Schmoe',
             'givenName' => 'Joe',
@@ -1285,7 +1144,7 @@ XML;
     public function testCreateMailboxIgnoreProperties()
     {
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -1304,15 +1163,9 @@ XML;
 
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $response
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($response);
         }
 
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
         $attr = array(
             'displayName' => 'Joe Schmoe',
             'givenName' => 'Joe',
@@ -1333,7 +1186,7 @@ XML;
     public function testAddDlMember()
     {
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
                 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
                     <soap:Header>
@@ -1347,22 +1200,16 @@ XML;
 
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $response
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($response);
         }
 
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
         $this->connector->addDlMember('dummy-dl-id', 'test-account@dummy-domain.com');
     }
 
     public function testGetAccountQuotaUsed()
     {
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
     <soap:Header>
@@ -1721,15 +1568,13 @@ XML;
 
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->loginResponse,
                     $this->delegateResponse,
                     $response
                 )
             );
         }
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
         $quota = $this->connector->getAccountQuotaUsed('test@test-domain19.com');
 
         $this->assertEquals('932/0', $quota);
@@ -1738,7 +1583,7 @@ XML;
     public function testCreateContact()
     {
         if ($this->mock) {
-            $gfr = $this->httpHead;
+            $gfr = $this->getRawHttpOkHeader();
             $gfr .= <<<'XML'
 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
     <soap:Header>
@@ -1793,7 +1638,7 @@ XML;
 XML;
             $getFoldersResponse = new Response($gfr);
 
-            $ccr = $this->httpHead;
+            $ccr = $this->getRawHttpOkHeader();
             $ccr .= <<<'XML'
 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
     <soap:Header>
@@ -1814,17 +1659,14 @@ XML;
 XML;
             $createContactResponse = new Response($ccr);
 
-            $this->mockClient->shouldReceive('post')->times(4)->andReturnValues(
+            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
                 array(
-                    $this->loginResponse,
                     $this->delegateResponse,
                     $getFoldersResponse,
                     $createContactResponse
                 )
             );
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $id = $this->connector->createContact('test@test.com', array('firstName' => 'first', 'lastName' => 'last', 'email' => 'test@test.com'), null);
 
@@ -1836,7 +1678,7 @@ XML;
         $accountName = 'test@test-domain19.com';
 
         if ($this->mock) {
-            $ccr = $this->httpHead;
+            $ccr = $this->getRawHttpOkHeader();
             $ccr .= <<<'XML'
 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
     <soap:Header>
@@ -1859,15 +1701,12 @@ XML;
 
             $this->mockClient
                 ->shouldReceive('post')
-                ->times(3)
+                ->times(2)
                 ->andReturnValues(array(
-                    $this->loginResponse,
                     $this->delegateResponse,
                     $createContactResponse
                 ));
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $this->connector->createContact($accountName, array('firstName' => 'first', 'lastName' => 'last', 'email' => 'test@test.com'), 13);
     }
@@ -1875,7 +1714,7 @@ XML;
     public function testCreateSignature()
     {
         if ($this->mock) {
-            $csr = $this->httpHead;
+            $csr = $this->getRawHttpOkHeader();
             $csr .= <<<'XML'
 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
     <soap:Header>
@@ -1891,16 +1730,13 @@ XML;
 </soap:Envelope>
 XML;
             $csResponse = new Response($csr);
-            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->loginResponse,
                     $this->delegateResponse,
                     $csResponse
                 )
             );
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $id = $this->connector->createSignature('test@test-domain19.com', 'Primary', 'text/plain', 'Signature content');
         $this->assertEquals('b7f7d8d2-da88-4da4-8572-84f1408f0696', $id);
@@ -1909,7 +1745,7 @@ XML;
     public function testRenameAccount()
     {
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
     <soap:Header>
@@ -1927,15 +1763,8 @@ XML;
 
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $response
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($response);
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $id = 'dummy-id';
         $newAddress = 'updated-test2@displayname1.com';
@@ -1946,7 +1775,7 @@ XML;
     public function testGetAllTags()
     {
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
   <soap:Header>
@@ -1963,16 +1792,13 @@ XML;
 XML;
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->loginResponse,
                     $this->delegateResponse,
                     $response
                 )
             );
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $tags = $this->connector->getAllTags('test@test.com');
 
@@ -1988,7 +1814,7 @@ XML;
     public function testGetAllTagsMultiple()
     {
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
   <soap:Header>
@@ -2006,16 +1832,13 @@ XML;
 XML;
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->loginResponse,
                     $this->delegateResponse,
                     $response
                 )
             );
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $tags = $this->connector->getAllTags('test@test.com');
 
@@ -2039,7 +1862,7 @@ XML;
     public function testCreateTag()
     {
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
   <soap:Header>
@@ -2056,16 +1879,13 @@ XML;
 XML;
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->loginResponse,
                     $this->delegateResponse,
                     $response
                 )
             );
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $tagId = $this->connector->createTag('test@test.com', 'tag4');
 
@@ -2075,7 +1895,7 @@ XML;
     public function testTagContact()
     {
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
 <soap:Header>
@@ -2090,16 +1910,13 @@ XML;
 XML;
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(3)->andReturnValues(
+            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
                 array(
-                    $this->loginResponse,
                     $this->delegateResponse,
                     $response
                 )
             );
         }
-
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $contactId = '300';
 
@@ -2109,7 +1926,7 @@ XML;
     public function testSetPassword()
     {
         if ($this->mock) {
-            $raw = $this->httpHead;
+            $raw = $this->getRawHttpOkHeader();
             $raw .= <<<'XML'
 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
 <soap:Header>
@@ -2122,14 +1939,8 @@ XML;
 XML;
             $response = new Response($raw);
 
-            $this->mockClient->shouldReceive('post')->times(2)->andReturnValues(
-                array(
-                    $this->loginResponse,
-                    $response
-                )
-            );
+            $this->mockClient->shouldReceive('post')->once()->andReturn($response);
         }
-        $this->connector = new ZimbraConnector($this->mockClient, $this->server, $this->username, $this->password);
 
         $this->connector->setPassword('cc024fcf-ef49-4b71-9948-f66fb48a0252', '!@synaq()ABC');
     }
