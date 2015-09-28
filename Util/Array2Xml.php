@@ -55,7 +55,7 @@ class Array2Xml {
      * Convert an Array to XML
      * @param string $node_name - name of the root node to be converted
      * @param array $arr - aray to be converterd
-     * @return DomDocument
+     * @return \DOMDocument
      */
     public static function &createXML($node_name, $arr=array()) {
         $xml = self::getXMLRoot();
@@ -138,6 +138,9 @@ class Array2Xml {
 
     /*
      * Get the root XML node, if there isn't one, create it.
+     */
+    /**
+     * @return \DOMDocument
      */
     private static function getXMLRoot(){
         if(empty(self::$xml)) {

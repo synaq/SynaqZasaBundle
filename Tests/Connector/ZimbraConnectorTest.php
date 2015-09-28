@@ -32,12 +32,12 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
         //uncomment the below to use a real server,
         //replacing the credentials with with your server auth details.
         //You will have to comment the mocks in individual tests as well
-//        $this->mockClient = new Wrapper(null, false, true, false, array(
+//        $httpClient = new Wrapper(null, false, true, false, array(
 //            'CURLOPT_RETURNTRANSFER' => true,
 //            'CURLOPT_SSL_VERIFYPEER' => false,
 //            'CURLOPT_SSL_VERIFYHOST' => false
 //        ), array());
-//        $this->connector = new ZimbraConnector($this->mockClient, $server, $username, $password);
+//        $this->connector = new ZimbraConnector($httpClient, 'https://mweb.synaq.com:7071/service/admin/soap', 'admin@demo.synaq.com', '!@synaq()');
     }
 
     private function buildSuccessfulAdminAuthResponse()
@@ -686,5 +686,25 @@ XML;
     {
         $this->expectSuccessfulPostWithResponseBody('<SetPasswordResponse xmlns="urn:zimbraAdmin"/>');
         $this->connector->setPassword('cc024fcf-ef49-4b71-9948-f66fb48a0252', '!@synaq()ABC');
+    }
+
+    public function testCreateIdentity()
+    {
+        $this->expectDelegatedAuth();
+        $this->expectSuccessfulPostWithResponseBody(
+            '<CreateIdentityResponse xmlns="urn:zimbraAccount">
+              <identity name="test2@test.com" id="2cb9fced-f39b-4c76-a5da-ca1ae13b20b7">
+                <a name="zimbraPrefIdentityId">2cb9fced-f39b-4c76-a5da-ca1ae13b20b7</a>
+                <a name="objectClass">zimbraIdentity</a>
+                <a name="zimbraCreateTimestamp">20150925092836Z</a>
+                <a name="zimbraPrefIdentityName">test2@test.com</a>
+              </identity>
+            </CreateIdentityResponse>'
+        );
+        $accountName = 'test@test.com';
+        $name = 'Alias test22@test.com';
+        $fromAddress = 'test22@test.com';
+        $fromDisplay = 'Test Persona 22';
+        $this->connector->createIdentity($accountName, $name, $fromAddress, $fromDisplay);
     }
 }
