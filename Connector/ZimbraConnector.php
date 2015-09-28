@@ -1049,12 +1049,21 @@ class ZimbraConnector
     public function createIdentity($accountName, $name, $fromAddress, $fromDisplay)
     {
         $this->delegateAuth($accountName);
+        $aArray = $this->getAArray(
+            array(
+                'zimbraPrefFromAddress' => $fromAddress,
+                'zimbraPrefFromDisplay' => $fromDisplay,
+                '
+                        zimbraPrefFromAddressType' => 'sendAs'
+            ),
+            'name'
+        );
         $this->request('CreateIdentity', array(), array(
             'identity' => array(
                 '@attributes' => array(
                     'name' => $name,
                 ),
-                'a' => $this->getAArray(array('zimbraPrefFromAddress' => $fromAddress, 'zimbraPrefFromDisplay' => $fromDisplay, 'zimbraPrefFromAddressType' => 'sendAs'), 'name')
+                'a' => $aArray,
             )
         ), true, 'Account');
     }
