@@ -108,6 +108,18 @@ class ZimbraConnector
     }
 
     /**
+     * @param $responseArray
+     * @throws SoapFaultException
+     */
+    private function identifySoapFault($responseArray)
+    {
+        if (array_key_exists('soap:Fault', $responseArray['soap:Envelope']['soap:Body'])) {
+
+            throw new SoapFaultException('Zimbra Soap Fault: ' . $responseArray['soap:Envelope']['soap:Body']['soap:Fault']['soap:Reason']['soap:Text']);
+        }
+    }
+
+    /**
      * @param $request
      * @param $attributes
      * @param $parameters
@@ -134,6 +146,24 @@ class ZimbraConnector
             'soap:Body' => $body
         );
         return $message;
+    }
+
+    /**
+     * @param $delegate
+     * @return array
+     */
+    private function buildRequestHeaders($delegate)
+    {
+        if ($delegate) {
+            $header = $this->buildDelegateAuthRequestHeaders();
+            return $header;
+        } elseif ($this->authToken) {
+            $header = $this->buildAuthRequestHeaders();
+            return $header;
+        } else {
+            $header = $this->buildNoAuthRequestHeaders();
+            return $header;
+        }
     }
 
     /**
@@ -1027,35 +1057,5 @@ class ZimbraConnector
                 'a' => $this->getAArray(array('zimbraPrefFromAddress' => $fromAddress, 'zimbraPrefFromDisplay' => $fromDisplay, 'zimbraPrefFromAddressType' => 'sendAs'), 'name')
             )
         ), true, 'Account');
-    }
-
-    /**
-     * @param $delegate
-     * @return array
-     */
-    private function buildRequestHeaders($delegate)
-    {
-        if ($delegate) {
-            $header = $this->buildDelegateAuthRequestHeaders();
-            return $header;
-        } elseif ($this->authToken) {
-            $header = $this->buildAuthRequestHeaders();
-            return $header;
-        } else {
-            $header = $this->buildNoAuthRequestHeaders();
-            return $header;
-        }
-    }
-
-    /**
-     * @param $responseArray
-     * @throws SoapFaultException
-     */
-    private function identifySoapFault($responseArray)
-    {
-        if (array_key_exists('soap:Fault', $responseArray['soap:Envelope']['soap:Body'])) {
-
-            throw new SoapFaultException('Zimbra Soap Fault: ' . $responseArray['soap:Envelope']['soap:Body']['soap:Fault']['soap:Reason']['soap:Text']);
-        }
     }
 }
