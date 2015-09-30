@@ -792,7 +792,7 @@ class ZimbraConnector
     {
         $this->delegateAuth($accountName);
 
-        $response = $this->request('GetFolders', array(), array(), true);
+        $response = $this->request('GetFolder', array(), array(), true);
 
         return $response;
     }
@@ -983,7 +983,7 @@ class ZimbraConnector
     {
         $this->delegateAuth($accountName);
 
-        $response = $this->request('GetTags', array(), array(), true);
+        $response = $this->request('GetTag', array(), array(), true);
 
         $tags = array();
         //single
