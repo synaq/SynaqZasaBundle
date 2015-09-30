@@ -776,7 +776,7 @@ class ZimbraConnector
     {
         $this->delegateAuth($account);
 
-        $response = $this->request('GetFolder', array(), array(
+        $response = $this->request('GetFolders', array(), array(
             'folder' => array(
                 '@attributes' => array(
                     'l' => $folderId
