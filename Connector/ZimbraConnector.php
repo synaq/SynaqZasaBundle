@@ -131,9 +131,10 @@ class ZimbraConnector
     {
         $header = $this->buildRequestHeaders($delegate);
 
-        $attributes['xmlns'] = 'urn:zimbraAdmin';
         if ($delegate) {
-            $attributes['xmlns'] .= $delegateType;
+            $attributes['xmlns'] .= 'urn:zimbra' . $delegateType;
+        } else {
+            $attributes['xmlns'] = 'urn:zimbraAdmin';
         }
 
         $body[$request . 'Request'] = array_merge(array('@attributes' => $attributes), $parameters);
@@ -776,7 +777,7 @@ class ZimbraConnector
     {
         $this->delegateAuth($account);
 
-        $response = $this->request('GetFolders', array(), array(
+        $response = $this->request('GetFolder', array(), array(
             'folder' => array(
                 '@attributes' => array(
                     'l' => $folderId
