@@ -1047,15 +1047,20 @@ class ZimbraConnector
         ));
     }
 
-    public function createIdentity($accountName, $name, $fromAddress, $fromDisplay)
+    public function createIdentity($accountName, $name, $fromAddress = null, $fromDisplay = null)
     {
         $this->delegateAuth($accountName);
+
+        $attr = array('zimbraPrefFromAddressType' => 'sendAs');
+        if ($fromAddress) {
+            $attr['zimbraPrefFromAddress'] = $fromAddress;
+        }
+        if ($fromDisplay) {
+            $attr['zimbraPrefFromDisplay'] = $fromDisplay;
+        }
+
         $aArray = $this->getAArray(
-            array(
-                'zimbraPrefFromAddress' => $fromAddress,
-                'zimbraPrefFromDisplay' => $fromDisplay,
-                'zimbraPrefFromAddressType' => 'sendAs'
-            ),
+            $attr,
             'name'
         );
         $this->request('CreateIdentity', array(), array(
