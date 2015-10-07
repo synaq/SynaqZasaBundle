@@ -132,7 +132,7 @@ class ZimbraConnector
         $header = $this->buildRequestHeaders($delegate);
 
         if ($delegate) {
-            $attributes['xmlns'] .= 'urn:zimbra' . $delegateType;
+            $attributes['xmlns'] = 'urn:zimbra' . $delegateType;
         } else {
             $attributes['xmlns'] = 'urn:zimbraAdmin';
         }
