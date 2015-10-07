@@ -1054,8 +1054,7 @@ class ZimbraConnector
             array(
                 'zimbraPrefFromAddress' => $fromAddress,
                 'zimbraPrefFromDisplay' => $fromDisplay,
-                '
-                        zimbraPrefFromAddressType' => 'sendAs'
+                'zimbraPrefFromAddressType' => 'sendAs'
             ),
             'name'
         );
