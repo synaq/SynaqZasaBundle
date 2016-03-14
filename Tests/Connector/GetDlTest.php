@@ -43,6 +43,15 @@ class GetDlTest extends ZimbraConnectorTestCase
         )->once();
     }
 
+    /**
+     * @test
+     */
+    public function shouldReturnNormalizedArrayFromZimbraSoapResults()
+    {
+        $dl = $this->connector->getDl('some@example.com');
+        $this->assertEquals('@example.com', $dl['zimbraMailCatchAllAddress']);
+    }
+
     protected function setUp()
     {
         parent::setUp();

@@ -964,5 +964,13 @@ class ZimbraConnector
                 '@value' => $emailAddress
             )
         ));
+
+        $dl = array();
+        $dl['id'] = $response['dl']['@attributes']['id'];
+        foreach ($response['dl']['a'] as $a) {
+            $dl[$a['@attributes']['n']] = $a['@value'];
+        }
+
+        return $dl;
     }
 }
