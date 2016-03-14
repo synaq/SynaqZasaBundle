@@ -68,53 +68,76 @@ class ZimbraConnector
         $this->login();
     }
 
-    private function request($request, $attributes = array(), $parameters = array(), $delegate = false, $delegateType = 'Mail')
+    private function request($requestType, $attributes = array(), $parameters = array(), $delegate = false, $delegateType = 'Mail')
     {
-        //header
-        if ($delegate) {
-            $header = array (
-                'context' => array(
-                    '@attributes' => array(
-                        'xmlns' => 'urn:zimbra'
-                    ),
-                    'authToken' => array(
-                        '@value' => $this->delegatedAuthToken
-                    ),
-                    'account' => array(
-                        '@attributes' => array(
-                            'by' => 'name'
-                        ),
-                        '@value' => $this->delegatedAuthAccount
-                    )
-                )
-            );
-        } elseif ($this->authToken) {
-            $header = array (
-                'context' => array(
-                    '@attributes' => array(
-                        'xmlns' => 'urn:zimbra'
-                    ),
-                    'authToken' => array(
-                        '@value' => $this->authToken
-                    )
-                )
-            );
-        } else {
-            $header = array (
-                'context' => array(
-                    '@attributes' => array(
-                        'xmlns' => 'urn:zimbra'
-                    )
-                )
-            );
-        }
+        $request = $this->buildRequest($requestType, $attributes, $parameters, $delegate, $delegateType);
+        $response = $this->submitRequest($request);
 
-        //body
+        return $response['soap:Envelope']['soap:Body'][$requestType . 'Response'];
+    }
+
+    /**
+     * @param $requestType
+     * @param $attributes
+     * @param $parameters
+     * @param $delegate
+     * @param $delegateType
+     * @return string
+     */
+    private function buildRequest($requestType, $attributes, $parameters, $delegate, $delegateType)
+    {
+        $requestAsArray = $this->buildRequestAsArray($requestType, $attributes, $parameters, $delegate, $delegateType);
+        $requestAsXml = Array2Xml::createXML('soap:Envelope', $requestAsArray)->saveXML();
+        return $requestAsXml;
+    }
+
+    /**
+     * @param $request
+     * @return \DOMDocument
+     * @throws SoapFaultException
+     * @throws \Exception
+     */
+    private function submitRequest($request)
+    {
+        $response = $this->httpClient->post($this->server, $request, array("Content-type: application/xml"), array(),
+            $this->fopen);
+        $responseContent = $response->getBody();
+        $responseArray = Xml2Array::createArray($responseContent);
+        $this->identifySoapFault($responseArray);
+
+        return $responseArray;
+    }
+
+    /**
+     * @param $responseArray
+     * @throws SoapFaultException
+     */
+    private function identifySoapFault($responseArray)
+    {
+        if (array_key_exists('soap:Fault', $responseArray['soap:Envelope']['soap:Body'])) {
+
+            throw new SoapFaultException('Zimbra Soap Fault: ' . $responseArray['soap:Envelope']['soap:Body']['soap:Fault']['soap:Reason']['soap:Text']);
+        }
+    }
+
+    /**
+     * @param $request
+     * @param $attributes
+     * @param $parameters
+     * @param $delegate
+     * @param $delegateType
+     * @return array
+     */
+    private function buildRequestAsArray($request, $attributes, $parameters, $delegate, $delegateType)
+    {
+        $header = $this->buildRequestHeaders($delegate);
+
         if ($delegate) {
             $attributes['xmlns'] = 'urn:zimbra' . $delegateType;
         } else {
             $attributes['xmlns'] = 'urn:zimbraAdmin';
         }
+
         $body[$request . 'Request'] = array_merge(array('@attributes' => $attributes), $parameters);
 
         $message = array(
@@ -124,19 +147,82 @@ class ZimbraConnector
             'soap:Header' => $header,
             'soap:Body' => $body
         );
-        $xml = Array2Xml::createXML('soap:Envelope', $message)->saveXML();
+        return $message;
+    }
 
-        $response = $this->httpClient->post($this->server, $xml, array("Content-type: application/xml"), array(), $this->fopen);
-        $responseContent = $response->getBody();
-
-        $responseArray = Xml2Array::createArray($responseContent);
-
-        if (array_key_exists('soap:Fault', $responseArray['soap:Envelope']['soap:Body'])) {
-
-            throw new SoapFaultException('Zimbra Soap Fault: ' . $responseArray['soap:Envelope']['soap:Body']['soap:Fault']['soap:Reason']['soap:Text']);
+    /**
+     * @param $delegate
+     * @return array
+     */
+    private function buildRequestHeaders($delegate)
+    {
+        if ($delegate) {
+            $header = $this->buildDelegateAuthRequestHeaders();
+            return $header;
+        } elseif ($this->authToken) {
+            $header = $this->buildAuthRequestHeaders();
+            return $header;
+        } else {
+            $header = $this->buildNoAuthRequestHeaders();
+            return $header;
         }
+    }
 
-        return $responseArray['soap:Envelope']['soap:Body'][$request . 'Response'];
+    /**
+     * @return array
+     */
+    private function buildDelegateAuthRequestHeaders()
+    {
+        $header = array(
+            'context' => array(
+                '@attributes' => array(
+                    'xmlns' => 'urn:zimbra'
+                ),
+                'authToken' => array(
+                    '@value' => $this->delegatedAuthToken
+                ),
+                'account' => array(
+                    '@attributes' => array(
+                        'by' => 'name'
+                    ),
+                    '@value' => $this->delegatedAuthAccount
+                )
+            )
+        );
+        return $header;
+    }
+
+    /**
+     * @return array
+     */
+    private function buildAuthRequestHeaders()
+    {
+        $header = array(
+            'context' => array(
+                '@attributes' => array(
+                    'xmlns' => 'urn:zimbra'
+                ),
+                'authToken' => array(
+                    '@value' => $this->authToken
+                )
+            )
+        );
+        return $header;
+    }
+
+    /**
+     * @return array
+     */
+    private function buildNoAuthRequestHeaders()
+    {
+        $header = array(
+            'context' => array(
+                '@attributes' => array(
+                    'xmlns' => 'urn:zimbra'
+                )
+            )
+        );
+        return $header;
     }
 
     public function login()
@@ -183,13 +269,13 @@ class ZimbraConnector
         return $response['domain']['@attributes']['id'];
     }
 
-    private function getAArray($attributes)
+    private function getAArray($attributes, $n = 'n')
     {
         $a = array();
         foreach ($attributes as $key => $value) {
             $a[] = array(
                 '@attributes' => array(
-                    'n' => $key
+                    $n => $key
                 ),
                 '@value' => $value
             );
@@ -622,6 +708,8 @@ class ZimbraConnector
 
             return $response;
         }
+
+        return false;
     }
 
     public function addArchiveReadFilterRule($account)
@@ -805,7 +893,7 @@ class ZimbraConnector
 
     public function getFolderByName($accountName, $folderName)
     {
-        $folders = $this->getFolders($accountName, $folderName);
+        $folders = $this->getFolders($accountName);
 
         foreach ($folders['folder']['folder'] as $folder) {
             if ($folder['@attributes']['name'] == $folderName) {
@@ -972,5 +1060,39 @@ class ZimbraConnector
         }
 
         return $dl;
+    }
+
+    public function setPassword($accountId, $newPassword)
+    {
+        $this->request('SetPassword', array(
+            'newPassword' => $newPassword,
+            'id' => $accountId
+        ));
+    }
+
+    public function createIdentity($accountName, $name, $fromAddress = null, $fromDisplay = null)
+    {
+        $this->delegateAuth($accountName);
+
+        $attr = array('zimbraPrefFromAddressType' => 'sendAs');
+        if ($fromAddress) {
+            $attr['zimbraPrefFromAddress'] = $fromAddress;
+        }
+        if ($fromDisplay) {
+            $attr['zimbraPrefFromDisplay'] = $fromDisplay;
+        }
+
+        $aArray = $this->getAArray(
+            $attr,
+            'name'
+        );
+        $this->request('CreateIdentity', array(), array(
+            'identity' => array(
+                '@attributes' => array(
+                    'name' => $name,
+                ),
+                'a' => $aArray,
+            )
+        ), true, 'Account');
     }
 }
