@@ -56,13 +56,14 @@ class ZimbraConnector
      * @param $adminPass
      * @param bool $fopen
      */
-    public function __construct(Wrapper $httpClient, $server, $adminUser, $adminPass, $fopen = true)
+    public function __construct(Wrapper $httpClient, $server, $adminUser, $adminPass, $fopen = true, $authToken = null)
     {
         $this->httpClient = $httpClient;
         $this->server = $server;
         $this->adminUser = $adminUser;
         $this->adminPass = $adminPass;
         $this->fopen = $fopen;
+        $this->authToken = $authToken;
 
         $this->login();
     }
@@ -226,8 +227,10 @@ class ZimbraConnector
 
     public function login()
     {
-        $response = $this->request('Auth', array(), array('name' => $this->adminUser, 'password' => $this->adminPass));
-        $this->authToken = $response['authToken'];
+        if (empty($this->authToken)) {
+            $response = $this->request('Auth', array(), array('name' => $this->adminUser, 'password' => $this->adminPass));
+            $this->authToken = $response['authToken'];
+        }
     }
 
     public function countAccount($domain, $by = 'name')
@@ -1037,6 +1040,26 @@ class ZimbraConnector
             ),
             true
         );
+    }
+
+    public function getDl($emailAddress)
+    {
+        $response = $this->request('GetDistributionList', array(), array(
+            'dl' => array(
+                '@attributes' => array(
+                    'by' => 'name'
+                ),
+                '@value' => $emailAddress
+            )
+        ));
+
+        $dl = array();
+        $dl['id'] = $response['dl']['@attributes']['id'];
+        foreach ($response['dl']['a'] as $a) {
+            $dl[$a['@attributes']['n']] = $a['@value'];
+        }
+
+        return $dl;
     }
 
     public function setPassword($accountId, $newPassword)
