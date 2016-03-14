@@ -956,5 +956,13 @@ class ZimbraConnector
 
     public function getDl($emailAddress)
     {
+        $response = $this->request('GetDistributionList', array(), array(
+            'dl' => array(
+                '@attributes' => array(
+                    'by' => 'name'
+                ),
+                '@value' => $emailAddress
+            )
+        ));
     }
 }
