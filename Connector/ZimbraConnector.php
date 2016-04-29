@@ -233,10 +233,9 @@ class ZimbraConnector
 
     public function login()
     {
-        if (empty($this->authToken)) {
-            $response = $this->request('Auth', array(), array('name' => $this->adminUser, 'password' => $this->adminPass));
-            $this->authToken = $response['authToken'];
-        }
+        $response = $this->request('Auth', array(), array('name' => $this->adminUser, 'password' => $this->adminPass));
+        $this->authToken = $response['authToken'];
+        file_put_contents($this->sessionPath, $response['authToken']);
     }
 
     public function countAccount($domain, $by = 'name')
