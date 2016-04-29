@@ -71,6 +71,8 @@ class ZimbraConnector
 
         if (empty($this->sessionPath)) {
             $this->login();
+        } else {
+            $this->authToken = file_get_contents($this->sessionPath);
         }
     }
 

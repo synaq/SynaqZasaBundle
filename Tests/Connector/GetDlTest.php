@@ -80,6 +80,6 @@ class GetDlTest extends ZimbraConnectorTestCase
 
         $this->client->shouldReceive('post')->andReturn($getDistributionListResponse)->byDefault();
 
-        $this->connector = new ZimbraConnector($this->client, null, null, null, true, 'dummy-auth-token');
+        $this->connector = new ZimbraConnector($this->client, null, null, null, true, __DIR__ . '/Fixtures/token');
     }
 }

@@ -26,7 +26,7 @@ class StoreSessionKeyTest extends ZimbraConnectorTestCase
      */
     public function shouldNotAuthOnConstructionIfSessionFileIsPresent()
     {
-        $this->constructConnectorWithSessionFile('Fixtures/token');
+        $this->constructConnectorWithSessionFile(__DIR__ . '/Fixtures/token');
         $this->client->shouldNotHaveReceived('post');
     }
 
@@ -50,6 +50,33 @@ class StoreSessionKeyTest extends ZimbraConnectorTestCase
         $this->constructConnectorWithSessionFile($sessionFilePath);
         $this->connector->login();
         $this->assertEquals($token, file_get_contents($sessionFilePath));
+    }
+
+    /**
+     * @test
+     */
+    public function shouldUseAuthTokenFromSessionFile()
+    {
+        $getAccountResponse = '<GetAllAccountsResponse xmlns="urn:zimbraAdmin">
+                    <account name="test@test.com" id="bc85eaf1-dfe0-4879-b5e0-314979ae0009">
+                        <a n="attribute-1">value-1</a>
+                        <a n="attribute-2">value-2</a>
+                    </account>
+                </GetAllAccountsResponse>';
+        $this->client->shouldReceive('post')->andReturn(
+            new Response($this->httpOkHeaders.$this->soapHeaders.$getAccountResponse.$this->soapFooters)
+        );
+
+        $this->constructConnectorWithSessionFile(__DIR__ . '/Fixtures/token');
+        $this->connector->getAccounts('test.com');
+
+        $expected = "    <context xmlns=\"urn:zimbra\">\n" .
+                    "      <authToken>dummy-auth-token</authToken>\n" .
+                    "    </context>\n";
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function($actual) use ($expected) {
+
+            return strstr($actual, $expected) !== false;
+        }), m::any(), m::any(), m::any())->once();
     }
 
     protected function constructConnectorWithSessionFile($sessionFile)
