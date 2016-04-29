@@ -47,6 +47,10 @@ class ZimbraConnector
      * @var bool
      */
     private $fopen = true;
+    /**
+     * @var string
+     */
+    private $sessionPath;
 
 
     /**
@@ -56,16 +60,18 @@ class ZimbraConnector
      * @param $adminPass
      * @param bool $fopen
      */
-    public function __construct(Wrapper $httpClient, $server, $adminUser, $adminPass, $fopen = true, $authToken = null)
+    public function __construct(Wrapper $httpClient, $server, $adminUser, $adminPass, $fopen = true, $sessionPath = null)
     {
         $this->httpClient = $httpClient;
         $this->server = $server;
         $this->adminUser = $adminUser;
         $this->adminPass = $adminPass;
         $this->fopen = $fopen;
-        $this->authToken = $authToken;
+        $this->sessionPath = $sessionPath;
 
-        $this->login();
+        if (empty($this->sessionPath)) {
+            $this->login();
+        }
     }
 
     private function request($requestType, $attributes = array(), $parameters = array(), $delegate = false, $delegateType = 'Mail')

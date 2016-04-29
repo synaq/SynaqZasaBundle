@@ -29,15 +29,6 @@ class ZimbraConnectorTest extends \PHPUnit_Framework_TestCase
         $username = 'admin@my-server.com';
         $password = 'my-password';
         $this->connector = new ZimbraConnector($this->httpClient, $server, $username, $password);
-        //uncomment the below to use a real server,
-        //replacing the credentials with with your server auth details.
-        //You will have to comment the mocks in individual tests as well
-//        $httpClient = new Wrapper(null, false, true, false, array(
-//            'CURLOPT_RETURNTRANSFER' => true,
-//            'CURLOPT_SSL_VERIFYPEER' => false,
-//            'CURLOPT_SSL_VERIFYHOST' => false
-//        ), array());
-//        $this->connector = new ZimbraConnector($httpClient, 'https://mweb.synaq.com:7071/service/admin/soap', 'admin@demo.synaq.com', '!@synaq()');
     }
 
     private function buildSuccessfulAdminAuthResponse()
