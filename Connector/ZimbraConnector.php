@@ -235,7 +235,9 @@ class ZimbraConnector
     {
         $response = $this->request('Auth', array(), array('name' => $this->adminUser, 'password' => $this->adminPass));
         $this->authToken = $response['authToken'];
-        file_put_contents($this->sessionPath, $response['authToken']);
+        if (!empty($this->sessionPath)) {
+            file_put_contents($this->sessionPath, $response['authToken']);
+        }
     }
 
     public function countAccount($domain, $by = 'name')
