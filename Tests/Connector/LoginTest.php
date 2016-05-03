@@ -18,16 +18,6 @@ class LoginTest extends ZimbraConnectorTestCase
     /**
      * @test
      */
-    public function shouldNotRequestNewAuthTokenIfAuthTokenAlreadyPresentInClass()
-    {
-        $connector = new ZimbraConnector($this->client, null, null, null, true, 'dummy-auth-token');
-        $connector->login();
-        $this->client->shouldNotHaveReceived('post');
-    }
-
-    /**
-     * @test
-     */
     public function shouldRequestAuthTokenIfAuthTokenNotPresentInClass()
     {
         $authResponse = '<AuthResponse xmlns="urn:zimbraAdmin">

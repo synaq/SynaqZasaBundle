@@ -47,6 +47,10 @@ class ZimbraConnector
      * @var bool
      */
     private $fopen = true;
+    /**
+     * @var string
+     */
+    private $sessionPath;
 
 
     /**
@@ -56,16 +60,20 @@ class ZimbraConnector
      * @param $adminPass
      * @param bool $fopen
      */
-    public function __construct(Wrapper $httpClient, $server, $adminUser, $adminPass, $fopen = true, $authToken = null)
+    public function __construct(Wrapper $httpClient, $server, $adminUser, $adminPass, $fopen = true, $sessionPath = null)
     {
         $this->httpClient = $httpClient;
         $this->server = $server;
         $this->adminUser = $adminUser;
         $this->adminPass = $adminPass;
         $this->fopen = $fopen;
-        $this->authToken = $authToken;
+        $this->sessionPath = $sessionPath;
 
-        $this->login();
+        if (empty($this->sessionPath) || !file_exists($this->sessionPath)) {
+            $this->login();
+        } else {
+            $this->authToken = file_get_contents($this->sessionPath);
+        }
     }
 
     private function request($requestType, $attributes = array(), $parameters = array(), $delegate = false, $delegateType = 'Mail')
@@ -91,19 +99,24 @@ class ZimbraConnector
         return $requestAsXml;
     }
 
-    /**
-     * @param $request
-     * @return \DOMDocument
-     * @throws SoapFaultException
-     * @throws \Exception
-     */
-    private function submitRequest($request)
+    private function submitRequest($request, $retryOnExpiredAuth = true)
     {
-        $response = $this->httpClient->post($this->server, $request, array("Content-type: application/xml"), array(),
-            $this->fopen);
-        $responseContent = $response->getBody();
-        $responseArray = Xml2Array::createArray($responseContent);
-        $this->identifySoapFault($responseArray);
+        try {
+            $response = $this->httpClient->post($this->server, $request, array("Content-type: application/xml"), array(),
+                $this->fopen);
+            $responseContent = $response->getBody();
+            $responseArray = Xml2Array::createArray($responseContent);
+            $this->identifySoapFault($responseArray);
+
+        } catch (SoapFaultException $e) {
+            if ($e->getMessage() == 'Zimbra Soap Fault: auth credentials have expired' && $retryOnExpiredAuth) {
+                $this->login();
+                $responseArray = $this->submitRequest($request, false);
+            } else {
+
+                throw $e;
+            }
+        }
 
         return $responseArray;
     }
@@ -227,9 +240,10 @@ class ZimbraConnector
 
     public function login()
     {
-        if (empty($this->authToken)) {
-            $response = $this->request('Auth', array(), array('name' => $this->adminUser, 'password' => $this->adminPass));
-            $this->authToken = $response['authToken'];
+        $response = $this->request('Auth', array(), array('name' => $this->adminUser, 'password' => $this->adminPass));
+        $this->authToken = $response['authToken'];
+        if (!empty($this->sessionPath)) {
+            file_put_contents($this->sessionPath, $response['authToken']);
         }
     }
 
