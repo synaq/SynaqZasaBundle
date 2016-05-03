@@ -8,6 +8,8 @@
         <parameter key="synaq_zasa.server"/>
         <parameter key="synaq_zasa.admin_user"/>
         <parameter key="synaq_zasa.admin_pass"/>
+        <parameter key="synaq_zasa.use_fopen"/>
+        <parameter key="synaq_zasa.auth_token_path"/>
     </parameters>
 
     <services>
@@ -16,6 +18,8 @@
             <argument>%synaq_zasa.server%</argument>
             <argument>%synaq_zasa.admin_user%</argument>
             <argument>%synaq_zasa.admin_pass%</argument>
+            <argument>%synaq_zasa.user_fopen%</argument>
+            <argument>%synaq_zasa.auth_token_path%</argument>
         </service>
     </services>
 </container>
