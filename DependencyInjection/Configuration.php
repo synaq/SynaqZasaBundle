@@ -31,6 +31,12 @@ class Configuration implements ConfigurationInterface
             ->scalarNode('admin_pass')
             ->cannotBeEmpty()
             ->end()
+            ->scalarNode('use_fopen')
+            ->defaultTrue()
+            ->end()
+            ->scalarNode('auth_token_path')
+            ->defaultNull()
+            ->end()
             ->end();
 
         return $treeBuilder;
