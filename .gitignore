@@ -3,3 +3,4 @@ vendor
 .floo
 .flooignore
 .vagrant
+retry-token
