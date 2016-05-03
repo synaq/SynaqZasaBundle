@@ -99,7 +99,7 @@ class ZimbraConnector
         return $requestAsXml;
     }
 
-    private function submitRequest($request)
+    private function submitRequest($request, $retryOnExpiredAuth = true)
     {
         try {
             $response = $this->httpClient->post($this->server, $request, array("Content-type: application/xml"), array(),
@@ -109,9 +109,9 @@ class ZimbraConnector
             $this->identifySoapFault($responseArray);
 
         } catch (SoapFaultException $e) {
-            if ($e->getMessage() == 'Zimbra Soap Fault: auth credentials have expired') {
+            if ($e->getMessage() == 'Zimbra Soap Fault: auth credentials have expired' && $retryOnExpiredAuth) {
                 $this->login();
-                $responseArray = $this->submitRequest($request);
+                $responseArray = $this->submitRequest($request, false);
             } else {
 
                 throw $e;

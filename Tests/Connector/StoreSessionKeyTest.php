@@ -128,6 +128,60 @@ class StoreSessionKeyTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any())->once();
     }
 
+    /**
+     * @test
+     * @expectedException \Synaq\ZasaBundle\Exception\SoapFaultException
+     * @expectedExceptionMessage Zimbra Soap Fault: auth credentials have expired
+     */
+    public function shouldOnlyRetryAuthOnce()
+    {
+        $getAccountResponseExpired = '<soap:Fault>
+                                    <soap:Code>
+                                        <soap:Value>soap:Sender</soap:Value>
+                                    </soap:Code>
+                                    <soap:Reason>
+                                        <soap:Text>auth credentials have expired</soap:Text>
+                                    </soap:Reason>
+                                    <soap:Detail>
+                                        <Error xmlns="urn:zimbra">
+                                            <Code>service.AUTH_EXPIRED</Code>
+                                            <Trace>
+                                                qtp509886383-477388:https://10.1.5.145:7071/service/admin/soap:1461933712084:de2caf7d060bf3ee:SoapEngine266
+                                            </Trace>
+                                        </Error>
+                                    </soap:Detail>
+                                </soap:Fault>';
+        $authResponse = "<AuthResponse xmlns=\"urn:zimbraAdmin\">
+                                <authToken>dummy-token</authToken>
+                                <lifetime>43200000</lifetime>
+                            </AuthResponse>";
+        $getAccountResponse = '<GetAllAccountsResponse xmlns="urn:zimbraAdmin">
+                    <account name="test@test.com" id="bc85eaf1-dfe0-4879-b5e0-314979ae0009">
+                        <a n="attribute-1">value-1</a>
+                        <a n="attribute-2">value-2</a>
+                    </account>
+                </GetAllAccountsResponse>';
+        $this->client->shouldReceive('post')->andReturnValues(array(
+            new Response($this->httpOkHeaders.$this->soapHeaders.$getAccountResponseExpired.$this->soapFooters),
+            new Response($this->httpOkHeaders.$this->soapHeaders.$authResponse.$this->soapFooters),
+            new Response($this->httpOkHeaders.$this->soapHeaders.$getAccountResponseExpired.$this->soapFooters),
+            new Response($this->httpOkHeaders.$this->soapHeaders.$authResponse.$this->soapFooters),
+            new Response($this->httpOkHeaders.$this->soapHeaders.$getAccountResponse.$this->soapFooters),
+        ));
+
+        $this->constructConnectorWithSessionFile(__DIR__ . '/Fixtures/retry-token');
+        $this->connector->getAccounts('test.com');
+
+        $expected = '    <AuthRequest xmlns="urn:zimbraAdmin">'. "\n" .
+            '      <name>admin@my-server.com</name>' ."\n" .
+            '      <password>my-password</password>' . "\n" .
+            '    </AuthRequest>';
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function($actual) use ($expected) {
+
+            return strstr($actual, $expected) !== false;
+        }), m::any(), m::any(), m::any())->once();
+    }
+
     protected function constructConnectorWithSessionFile($sessionFile)
     {
         $server = 'https://my-server.com:7071/service/admin/soap';
