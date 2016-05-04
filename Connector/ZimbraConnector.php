@@ -76,12 +76,23 @@ class ZimbraConnector
         }
     }
 
-    private function request($requestType, $attributes = array(), $parameters = array(), $delegate = false, $delegateType = 'Mail')
+    private function request($requestType, $attributes = array(), $parameters = array(), $delegate = false, $delegateType = 'Mail', $retryOnExpiredAuth = true)
     {
-        $request = $this->buildRequest($requestType, $attributes, $parameters, $delegate, $delegateType);
-        $response = $this->submitRequest($request);
+        try {
+            $request = $this->buildRequest($requestType, $attributes, $parameters, $delegate, $delegateType);
+            $response = $this->submitRequest($request);
+            $response = $response['soap:Envelope']['soap:Body'][$requestType . 'Response'];
+        } catch (SoapFaultException $e) {
+            if ($e->getMessage() == 'Zimbra Soap Fault: auth credentials have expired' && $retryOnExpiredAuth) {
+                $this->login();
+                $response = $this->request($requestType, $attributes, $parameters, $delegate, $delegateType, false);
+            } else {
 
-        return $response['soap:Envelope']['soap:Body'][$requestType . 'Response'];
+                throw $e;
+            }
+        }
+
+        return $response;
     }
 
     /**
@@ -99,24 +110,13 @@ class ZimbraConnector
         return $requestAsXml;
     }
 
-    private function submitRequest($request, $retryOnExpiredAuth = true)
+    private function submitRequest($request)
     {
-        try {
-            $response = $this->httpClient->post($this->server, $request, array("Content-type: application/xml"), array(),
-                $this->fopen);
-            $responseContent = $response->getBody();
-            $responseArray = Xml2Array::createArray($responseContent);
-            $this->identifySoapFault($responseArray);
-
-        } catch (SoapFaultException $e) {
-            if ($e->getMessage() == 'Zimbra Soap Fault: auth credentials have expired' && $retryOnExpiredAuth) {
-                $this->login();
-                $responseArray = $this->submitRequest($request, false);
-            } else {
-
-                throw $e;
-            }
-        }
+        $response = $this->httpClient->post($this->server, $request, array("Content-type: application/xml"), array(),
+            $this->fopen);
+        $responseContent = $response->getBody();
+        $responseArray = Xml2Array::createArray($responseContent);
+        $this->identifySoapFault($responseArray);
 
         return $responseArray;
     }
