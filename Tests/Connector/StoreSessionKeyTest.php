@@ -171,14 +171,28 @@ class StoreSessionKeyTest extends ZimbraConnectorTestCase
 
         $this->constructConnectorWithSessionFile(__DIR__ . '/Fixtures/retry-token');
         $this->connector->getAccounts('test.com');
+    }
 
-        $expected = '    <AuthRequest xmlns="urn:zimbraAdmin">'. "\n" .
-            '      <name>admin@my-server.com</name>' ."\n" .
-            '      <password>my-password</password>' . "\n" .
-            '    </AuthRequest>';
+    /**
+     * @test
+     */
+    public function shouldNotSendAuthTokenForLogin()
+    {
+        $authResponse = "<AuthResponse xmlns=\"urn:zimbraAdmin\">
+                                <authToken>dummy-token</authToken>
+                                <lifetime>43200000</lifetime>
+                            </AuthResponse>";
+        $this->client->shouldReceive('post')->andReturnValues(array(
+            new Response($this->httpOkHeaders.$this->soapHeaders.$authResponse.$this->soapFooters),
+        ));
+
+        $this->constructConnectorWithSessionFile(__DIR__ . '/Fixtures/retry-token');
+        $this->connector->login();
+
+        $expected = "<authToken>dummy-token</authToken>";
         $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function($actual) use ($expected) {
 
-            return strstr($actual, $expected) !== false;
+            return strstr($actual, $expected) === false;
         }), m::any(), m::any(), m::any())->once();
     }
 
