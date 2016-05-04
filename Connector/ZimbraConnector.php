@@ -240,6 +240,7 @@ class ZimbraConnector
 
     public function login()
     {
+        $this->authToken = null;
         $response = $this->request('Auth', array(), array('name' => $this->adminUser, 'password' => $this->adminPass));
         $this->authToken = $response['authToken'];
         if (!empty($this->sessionPath)) {
