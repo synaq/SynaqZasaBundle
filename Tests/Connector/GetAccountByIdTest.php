@@ -44,6 +44,15 @@ class GetAccountByIdTest extends ZimbraConnectorTestCase
         )->once();
     }
 
+    /**
+     * @test
+     */
+    public function shouldReturnArrayOfMailboxProperties()
+    {
+        $result = $this->connector->getAccountById('sample-account-id');
+        $this->assertInternalType('array', $result);
+    }
+
     protected function setUp()
     {
         parent::setUp();

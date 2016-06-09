@@ -1121,5 +1121,7 @@ class ZimbraConnector
                 '@value' => $accountId
             )
         ));
+
+        return array();
     }
 }
