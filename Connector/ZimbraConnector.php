@@ -1113,7 +1113,7 @@ class ZimbraConnector
 
     public function getAccountById($accountId)
     {
-        $this->request('GetAccount', array(), array(
+        $response = $this->request('GetAccount', array(), array(
             'account' => array(
                 '@attributes' => array(
                     'by' => 'id'
@@ -1122,6 +1122,12 @@ class ZimbraConnector
             )
         ));
 
-        return array();
+        $account = array();
+        $account['id'] = $response['account']['@attributes']['id'];
+        foreach ($response['account']['a'] as $a) {
+            $account[$a['@attributes']['n']] = $a['@value'];
+        }
+
+        return $account;
     }
 }

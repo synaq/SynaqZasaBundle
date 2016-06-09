@@ -53,6 +53,24 @@ class GetAccountByIdTest extends ZimbraConnectorTestCase
         $this->assertInternalType('array', $result);
     }
 
+    /**
+     * @test
+     */
+    public function shouldReturnAccountIdInArray()
+    {
+        $result = $this->connector->getAccountById('sample-account-id');
+        $this->assertEquals('sample-account-id', $result['id']);
+    }
+
+    /**
+     * @test
+     */
+    public function shouldReturnAccountSnInArray()
+    {
+        $result = $this->connector->getAccountById('sample-account-id');
+        $this->assertEquals('address@domain.com', $result['sn']);
+    }
+
     protected function setUp()
     {
         parent::setUp();
@@ -81,7 +99,7 @@ class GetAccountByIdTest extends ZimbraConnectorTestCase
                 <a n="zimbraInterceptSubject">Intercepted message for ${ACCOUNT_ADDRESS}: ${MESSAGE_SUBJECT}</a>
                 <a n="zimbraMailTrustedSenderListMaxNumEntries">500</a>
                 <a n="zimbraPrefMailSelectAfterDelete">next</a>
-                <a n="displayName">Willem Viljoen</a>
+                <a n="displayName">Random Display Name</a>
                 <a n="zimbraPrefAppleIcalDelegationEnabled">FALSE</a>
                 <a n="uid">52899238</a>
                 <a n="zimbraPrefHtmlEditorDefaultFontFamily">Arial, Helvetica, sans-serif</a>
