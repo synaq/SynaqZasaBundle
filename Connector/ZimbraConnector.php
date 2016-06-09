@@ -1110,4 +1110,16 @@ class ZimbraConnector
             )
         ), true, 'Account');
     }
+
+    public function getAccountById($accountId)
+    {
+        $this->request('GetAccount', array(), array(
+            'account' => array(
+                '@attributes' => array(
+                    'by' => 'id'
+                ),
+                '@value' => $accountId
+            )
+        ));
+    }
 }
