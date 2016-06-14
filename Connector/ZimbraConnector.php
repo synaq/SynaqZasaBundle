@@ -398,13 +398,7 @@ class ZimbraConnector
             )
         ));
 
-        $account = array();
-        $account['id'] = $response['account']['@attributes']['id'];
-        foreach ($response['account']['a'] as $a) {
-            $account[$a['@attributes']['n']] = $a['@value'];
-        }
-
-        return $account;
+        return $this->convertResponseArrayToAccountDetails($response);
     }
 
     public function getAccounts($domainName)
@@ -1109,5 +1103,34 @@ class ZimbraConnector
                 'a' => $aArray,
             )
         ), true, 'Account');
+    }
+
+    public function getAccountById($accountId)
+    {
+        $response = $this->request('GetAccount', array(), array(
+            'account' => array(
+                '@attributes' => array(
+                    'by' => 'id'
+                ),
+                '@value' => $accountId
+            )
+        ));
+
+        return $this->convertResponseArrayToAccountDetails($response);
+    }
+
+    /**
+     * @param $response
+     * @return array
+     */
+    private function convertResponseArrayToAccountDetails($response)
+    {
+        $account = array();
+        $account['id'] = $response['account']['@attributes']['id'];
+        foreach ($response['account']['a'] as $a) {
+            $account[$a['@attributes']['n']] = $a['@value'];
+        }
+
+        return $account;
     }
 }
