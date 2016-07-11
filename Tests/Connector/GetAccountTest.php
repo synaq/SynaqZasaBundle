@@ -29,6 +29,15 @@ class GetAccountTest extends ZimbraConnectorTestCase
         $this->assertEquals('Sample Mailbox', $accountDetails['cn']);
     }
 
+    /**
+     * @test
+     */
+    public function shouldReturnMultipleAttributeAsArrayOfValues()
+    {
+        $accountDetails = $this->connector->getAccount('any@domain.com');
+        $this->assertEquals(array('address@domain.com', 'alias1@domain.com'), $accountDetails['mail']);
+    }
+
     protected function setUp()
     {
         parent::setUp();
