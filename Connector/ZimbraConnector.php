@@ -1132,14 +1132,28 @@ class ZimbraConnector
             $attributeValue = $a['@value'];
 
             if (array_key_exists($attributeName, $account)) {
-                if (!is_array($account[$attributeName])) {
-                    $account[$attributeName] = array($account[$attributeName]);
-                }
+                $account = $this->makeSureThatAttributeNameMapsToAnArrayOnAccount($attributeName, $account);
 
                 array_push($account[$attributeName], $attributeValue);
             } else {
                 $account[$attributeName] = $attributeValue;
             }
+        }
+
+        return $account;
+    }
+
+    /**
+     * @param $attributeName
+     * @param $account
+     * @return mixed
+     */
+    private function makeSureThatAttributeNameMapsToAnArrayOnAccount($attributeName, $account)
+    {
+        if (!is_array($account[$attributeName])) {
+            $account[$attributeName] = array($account[$attributeName]);
+
+            return $account;
         }
 
         return $account;
