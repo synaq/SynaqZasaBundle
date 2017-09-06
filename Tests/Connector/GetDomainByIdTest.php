@@ -93,6 +93,15 @@ XML;
         $this->assertEquals('60d', $response['zimbraFreebusyExchangeCachedInterval']);
     }
 
+    /**
+     * @test
+     */
+    public function createsASpecialIdKeyUsingTheIdAttributeFromTheResponse()
+    {
+        $response = $this->connector->getDomainById('any-zimbra-domain-id');
+        $this->assertEquals('96a66235-0c22-4d4d-8ec7-7ccc2f346e31', $response['id']);
+    }
+
     protected function setUp()
     {
         parent::setUp();
