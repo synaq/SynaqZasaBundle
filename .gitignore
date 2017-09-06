@@ -4,3 +4,4 @@ vendor
 .flooignore
 .vagrant
 retry-token
+dockerContext/composer*
