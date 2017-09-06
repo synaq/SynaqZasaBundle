@@ -75,6 +75,15 @@ XML;
         )->once();
     }
 
+    /**
+     * @test
+     */
+    public function returnsNodesFromTheResponseUsingTheirNameAttributeAsTheKey()
+    {
+        $response = $this->connector->getDomainById('any-zimbra-domain-id');
+        $this->assertEquals('externalLdapAutoComplete', $response['zimbraGalAutoCompleteLdapFilter']);
+    }
+
     protected function setUp()
     {
         parent::setUp();

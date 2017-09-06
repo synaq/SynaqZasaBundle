@@ -1156,5 +1156,7 @@ class ZimbraConnector
                 '@value' => $zimbraDomainId,
             )
         ));
+
+        return array('zimbraGalAutoCompleteLdapFilter' => 'externalLdapAutoComplete');
     }
 }
