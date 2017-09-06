@@ -80,7 +80,7 @@ XML;
      */
     public function returnsNodesFromTheResponseUsingTheirNameAttributeAsTheKey()
     {
-        $response = $this->connector->getDomainById('any-zimbra-domain-id');
+        $response = $this->connector->getDomainById('any-id');
         $this->assertEquals('externalLdapAutoComplete', $response['zimbraGalAutoCompleteLdapFilter']);
     }
 
@@ -89,7 +89,7 @@ XML;
      */
     public function returnsAllNodesFromTheResponse()
     {
-        $response = $this->connector->getDomainById('any-zimbra-domain-id');
+        $response = $this->connector->getDomainById('any-id');
         $this->assertEquals('60d', $response['zimbraFreebusyExchangeCachedInterval']);
     }
 
@@ -98,8 +98,17 @@ XML;
      */
     public function createsASpecialIdKeyUsingTheIdAttributeFromTheResponse()
     {
-        $response = $this->connector->getDomainById('any-zimbra-domain-id');
+        $response = $this->connector->getDomainById('any-id');
         $this->assertEquals('96a66235-0c22-4d4d-8ec7-7ccc2f346e31', $response['id']);
+    }
+
+    /**
+     * @test
+     */
+    public function createsASpecialNameKeyUsingTheNameAttributeFromTheResponse()
+    {
+        $response = $this->connector->getDomainById('any-id');
+        $this->assertEquals('hbdc.co.za', $response['name']);
     }
 
     protected function setUp()
