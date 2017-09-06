@@ -10,18 +10,16 @@
             "email": "nicjparry@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "require": {
         "php": ">=5.3.2",
         "ext-curl": "*",
-        "symfony/framework-bundle": ">=2.1",
-        "synaq/curl-bundle": "dev-master"
+        "symfony/framework-bundle": "^2.7.34",
+        "synaq/curl-bundle": "^1.0"
     },
     "require-dev": {
-        "symfony/yaml": "2.1.*",
-        "symfony/validator": "2.1.*",
-	"phpunit/phpunit": "3.7.*",
-	"mockery/mockery": "dev-master"
+	    "phpunit/phpunit": "^4.8",
+	    "mockery/mockery": "^0.9.5"
     },
     "autoload": {
         "psr-0": { "Synaq\\ZasaBundle": "" }

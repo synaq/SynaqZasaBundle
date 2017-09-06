@@ -329,20 +329,25 @@ class ZimbraConnector
             )
         ));
 
-        $domain = array();
-        $domain['id'] = $response['domain']['@attributes']['id'];
-        foreach ($response['domain']['a'] as $a) {
-            $key = $a['@attributes']['n'];
-            if (array_key_exists($key, $domain)) {
-                if (is_array($domain[$key])) {
-                    $domain[$key][] = $a['@value'];
-                } else {
-                    $domain[$key] = array($domain[$key], $a['@value']);
-                }
-            } else {
-                $domain[$key] = $a['@value'];
-            }
-        }
+        $domain = $this->createDomainArrayFromResponse($response);
+
+        return $domain;
+    }
+
+    public function getDomainById($zimbraDomainId)
+    {
+        $response = $this->request('GetDomain', array(), array(
+            'domain' => array(
+                '@attributes' => array(
+                    'by' => 'id'
+                ),
+                '@value' => $zimbraDomainId,
+            )
+        ));
+
+        $domain = $this->createDomainArrayFromResponse($response);
+
+        $domain['name'] = $response['domain']['@attributes']['name'];
 
         return $domain;
     }
@@ -995,6 +1000,7 @@ class ZimbraConnector
     {
         $this->delegateAuth($accountName);
 
+        /** @var \ArrayObject $response */
         $response = $this->request('GetTag', array(), array(), true);
 
         $tags = array();
@@ -1143,5 +1149,30 @@ class ZimbraConnector
         }
 
         return $account;
+    }
+
+    /**
+     * @param $response
+     * @return array
+     */
+    private function createDomainArrayFromResponse($response)
+    {
+        $domain = array();
+        foreach ($response['domain']['a'] as $a) {
+            $key = $a['@attributes']['n'];
+            if (array_key_exists($key, $domain)) {
+                if (is_array($domain[$key])) {
+                    $domain[$key][] = $a['@value'];
+                } else {
+                    $domain[$key] = array($domain[$key], $a['@value']);
+                }
+            } else {
+                $domain[$key] = $a['@value'];
+            }
+        }
+
+        $domain['id'] = $response['domain']['@attributes']['id'];
+
+        return $domain;
     }
 }
