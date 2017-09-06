@@ -995,6 +995,7 @@ class ZimbraConnector
     {
         $this->delegateAuth($accountName);
 
+        /** @var \ArrayObject $response */
         $response = $this->request('GetTag', array(), array(), true);
 
         $tags = array();
@@ -1152,7 +1153,7 @@ class ZimbraConnector
                 '@attributes' => array(
                     'by' => 'id'
                 ),
-                '@value' => 'some-zimbra-domain-id',
+                '@value' => $zimbraDomainId,
             )
         ));
     }

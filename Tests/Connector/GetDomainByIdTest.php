@@ -48,6 +48,33 @@ XML;
         )->once();
     }
 
+    /**
+     * @test
+     */
+    public function acceptsAnyDomainId()
+    {
+        $expected = <<<XML
+    <GetDomainRequest xmlns="urn:zimbraAdmin">
+      <domain by="id">any-zimbra-domain-id</domain>
+    </GetDomainRequest>
+XML;
+
+        $this->connector->getDomainById('any-zimbra-domain-id');
+
+        $this->client->shouldHaveReceived('post')->with(
+            m::any(),
+            m::on(
+                function ($actual) use ($expected) {
+
+                    return strstr($actual, $expected) !== false;
+                }
+            ),
+            array("Content-type: application/xml"),
+            m::any(),
+            m::any()
+        )->once();
+    }
+
     protected function setUp()
     {
         parent::setUp();
