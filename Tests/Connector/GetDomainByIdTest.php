@@ -84,6 +84,15 @@ XML;
         $this->assertEquals('externalLdapAutoComplete', $response['zimbraGalAutoCompleteLdapFilter']);
     }
 
+    /**
+     * @test
+     */
+    public function returnsAllNodesFromTheResponse()
+    {
+        $response = $this->connector->getDomainById('any-zimbra-domain-id');
+        $this->assertEquals('60d', $response['zimbraFreebusyExchangeCachedInterval']);
+    }
+
     protected function setUp()
     {
         parent::setUp();

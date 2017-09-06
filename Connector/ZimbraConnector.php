@@ -1148,7 +1148,7 @@ class ZimbraConnector
 
     public function getDomainById($zimbraDomainId)
     {
-        $this->request('GetDomain', array(), array(
+        $response = $this->request('GetDomain', array(), array(
             'domain' => array(
                 '@attributes' => array(
                     'by' => 'id'
@@ -1157,6 +1157,20 @@ class ZimbraConnector
             )
         ));
 
-        return array('zimbraGalAutoCompleteLdapFilter' => 'externalLdapAutoComplete');
+        $domain = array();
+        foreach ($response['domain']['a'] as $a) {
+            $key = $a['@attributes']['n'];
+            if (array_key_exists($key, $domain)) {
+                if (is_array($domain[$key])) {
+                    $domain[$key][] = $a['@value'];
+                } else {
+                    $domain[$key] = array($domain[$key], $a['@value']);
+                }
+            } else {
+                $domain[$key] = $a['@value'];
+            }
+        }
+
+        return $domain;
     }
 }
