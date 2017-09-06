@@ -1144,4 +1144,16 @@ class ZimbraConnector
 
         return $account;
     }
+
+    public function getDomainById($zimbraDomainId)
+    {
+        $this->request('GetDomain', array(), array(
+            'domain' => array(
+                '@attributes' => array(
+                    'by' => 'id'
+                ),
+                '@value' => 'some-zimbra-domain-id',
+            )
+        ));
+    }
 }
