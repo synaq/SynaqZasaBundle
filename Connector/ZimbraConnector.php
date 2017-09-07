@@ -69,9 +69,7 @@ class ZimbraConnector
         $this->fopen = $fopen;
         $this->sessionPath = $sessionPath;
 
-        if (empty($this->sessionPath) || !file_exists($this->sessionPath)) {
-            $this->login();
-        } else {
+        if (!empty($this->sessionPath) && file_exists($this->sessionPath)) {
             $this->authToken = file_get_contents($this->sessionPath);
         }
     }
