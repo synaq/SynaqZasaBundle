@@ -52,6 +52,10 @@ class ZimbraConnector
      */
     private $sessionPath;
 
+    /**
+     * @var bool
+     */
+    private $login_init = false;
 
     /**
      * @param \Synaq\CurlBundle\Curl\Wrapper $httpClient
@@ -77,6 +81,9 @@ class ZimbraConnector
     private function request($requestType, $attributes = array(), $parameters = array(), $delegate = false, $delegateType = 'Mail', $retryOnExpiredAuth = true)
     {
         try {
+            if(!$this->login_init && !$this->authToken) {
+                $this->login();
+            }
             $request = $this->buildRequest($requestType, $attributes, $parameters, $delegate, $delegateType);
             $response = $this->submitRequest($request);
             $response = $response['soap:Envelope']['soap:Body'][$requestType . 'Response'];
@@ -239,6 +246,7 @@ class ZimbraConnector
     public function login()
     {
         $this->authToken = null;
+        $this->login_init = true;
         $response = $this->request('Auth', array(), array('name' => $this->adminUser, 'password' => $this->adminPass));
         $this->authToken = $response['authToken'];
         if (!empty($this->sessionPath)) {
