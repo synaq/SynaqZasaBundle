@@ -68,6 +68,15 @@ class ZimbraConnectorImportCalendarTest extends ZimbraConnectorTestCase
         $this->connector->importCalendar('bar@baz.com', null);
     }
 
+    /**
+     * @test
+     */
+    public function sendsRawHttpRequestOnce()
+    {
+        $this->connector->importCalendar(null, null);
+        $this->client->shouldHaveReceived('request')->once();
+    }
+
     protected function setUp()
     {
         parent::setUp();
