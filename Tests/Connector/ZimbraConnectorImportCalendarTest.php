@@ -46,11 +46,26 @@ class ZimbraConnectorImportCalendarTest extends ZimbraConnectorTestCase
         $this->connector->shouldHaveReceived('delegateAuth')->with('bar@baz.com');
     }
 
+    /**
+     * @test
+     * @expectedException \Synaq\ZasaBundle\Exception\DelegatedAuthDeniedException
+     * @expectedExceptionMessage Could not delegate authentication for foo@bar.com
+     */
+    public function throwsDelegatedAuthDeniedExceptionIfDelegatedAuthFails()
+    {
+        $this->connector->shouldReceive('delegateAuth')->andReturn(false);
+        $this->connector->importCalendar('foo@bar.com', null);
+    }
+
     protected function setUp()
     {
         parent::setUp();
 
         $this->connector = m::mock('\Synaq\ZasaBundle\Connector\ZimbraConnector[delegateAuth]' , array($this->client, null, null, null, true, __DIR__.'/Fixtures/token'));
+        $this->connector->shouldReceive('delegateAuth')->andReturn(array(
+            'authToken' => null,
+            'lifetime' => null
+        ))->byDefault();
         $this->connector->shouldIgnoreMissing();
     }
 }

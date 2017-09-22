@@ -1,6 +1,7 @@
 <?php
 namespace Synaq\ZasaBundle\Connector;
 
+use \Synaq\ZasaBundle\Exception\DelegatedAuthDeniedException;
 use Synaq\CurlBundle\Curl\Wrapper;
 use Synaq\ZasaBundle\Exception\SoapFaultException;
 use Synaq\ZasaBundle\Util\Array2Xml;
@@ -1126,7 +1127,12 @@ class ZimbraConnector
 
     public function importCalendar($account, $icsCalendarStream)
     {
-        $this->delegateAuth($account);
+        $result = $this->delegateAuth($account);
+
+        if (false === $result) {
+
+            throw new DelegatedAuthDeniedException('Could not delegate authentication for foo@bar.com');
+        }
     }
 
     /**
