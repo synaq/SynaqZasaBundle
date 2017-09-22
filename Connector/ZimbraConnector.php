@@ -1,7 +1,11 @@
 <?php
+
 namespace Synaq\ZasaBundle\Connector;
 
+use \Synaq\ZasaBundle\Exception\DelegatedAuthDeniedException;
 use Synaq\CurlBundle\Curl\Wrapper;
+use Synaq\ZasaBundle\Exception\MissingConfigurationException;
+use Synaq\ZasaBundle\Exception\RestErrorException;
 use Synaq\ZasaBundle\Exception\SoapFaultException;
 use Synaq\ZasaBundle\Util\Array2Xml;
 use Synaq\ZasaBundle\Util\Xml2Array;
@@ -56,37 +60,48 @@ class ZimbraConnector
      * @var bool
      */
     private $login_init = false;
-
     /**
-     * @param \Synaq\CurlBundle\Curl\Wrapper $httpClient
-     * @param $server
-     * @param $adminUser
-     * @param $adminPass
-     * @param bool $fopen
+     * @var null
      */
-    public function __construct(Wrapper $httpClient, $server, $adminUser, $adminPass, $fopen = true, $sessionPath = null)
-    {
+    private $restServerBaseUrl;
+
+    public function __construct(
+        Wrapper $httpClient,
+        $server,
+        $adminUser,
+        $adminPass,
+        $fopen = true,
+        $sessionPath = null,
+        $restServerBaseUrl = null
+    ) {
         $this->httpClient = $httpClient;
         $this->server = $server;
         $this->adminUser = $adminUser;
         $this->adminPass = $adminPass;
         $this->fopen = $fopen;
         $this->sessionPath = $sessionPath;
+        $this->restServerBaseUrl = $restServerBaseUrl;
 
         if (!empty($this->sessionPath) && file_exists($this->sessionPath)) {
             $this->authToken = file_get_contents($this->sessionPath);
         }
     }
 
-    private function request($requestType, $attributes = array(), $parameters = array(), $delegate = false, $delegateType = 'Mail', $retryOnExpiredAuth = true)
-    {
+    private function request(
+        $requestType,
+        $attributes = array(),
+        $parameters = array(),
+        $delegate = false,
+        $delegateType = 'Mail',
+        $retryOnExpiredAuth = true
+    ) {
         try {
-            if(!$this->login_init && !$this->authToken) {
+            if (!$this->login_init && !$this->authToken) {
                 $this->login();
             }
             $request = $this->buildRequest($requestType, $attributes, $parameters, $delegate, $delegateType);
             $response = $this->submitRequest($request);
-            $response = $response['soap:Envelope']['soap:Body'][$requestType . 'Response'];
+            $response = $response['soap:Envelope']['soap:Body'][$requestType.'Response'];
         } catch (SoapFaultException $e) {
             if ($e->getMessage() == 'Zimbra Soap Fault: auth credentials have expired' && $retryOnExpiredAuth) {
                 $this->login();
@@ -112,13 +127,19 @@ class ZimbraConnector
     {
         $requestAsArray = $this->buildRequestAsArray($requestType, $attributes, $parameters, $delegate, $delegateType);
         $requestAsXml = Array2Xml::createXML('soap:Envelope', $requestAsArray)->saveXML();
+
         return $requestAsXml;
     }
 
     private function submitRequest($request)
     {
-        $response = $this->httpClient->post($this->server, $request, array("Content-type: application/xml"), array(),
-            $this->fopen);
+        $response = $this->httpClient->post(
+            $this->server,
+            $request,
+            array("Content-type: application/xml"),
+            array(),
+            $this->fopen
+        );
         $responseContent = $response->getBody();
         $responseArray = Xml2Array::createArray($responseContent);
         $this->identifySoapFault($responseArray);
@@ -134,7 +155,9 @@ class ZimbraConnector
     {
         if (array_key_exists('soap:Fault', $responseArray['soap:Envelope']['soap:Body'])) {
 
-            throw new SoapFaultException('Zimbra Soap Fault: ' . $responseArray['soap:Envelope']['soap:Body']['soap:Fault']['soap:Reason']['soap:Text']);
+            throw new SoapFaultException(
+                'Zimbra Soap Fault: '.$responseArray['soap:Envelope']['soap:Body']['soap:Fault']['soap:Reason']['soap:Text']
+            );
         }
     }
 
@@ -151,12 +174,12 @@ class ZimbraConnector
         $header = $this->buildRequestHeaders($delegate);
 
         if ($delegate) {
-            $attributes['xmlns'] = 'urn:zimbra' . $delegateType;
+            $attributes['xmlns'] = 'urn:zimbra'.$delegateType;
         } else {
             $attributes['xmlns'] = 'urn:zimbraAdmin';
         }
 
-        $body[$request . 'Request'] = array_merge(array('@attributes' => $attributes), $parameters);
+        $body[$request.'Request'] = array_merge(array('@attributes' => $attributes), $parameters);
 
         $message = array(
             '@attributes' => array(
@@ -165,6 +188,7 @@ class ZimbraConnector
             'soap:Header' => $header,
             'soap:Body' => $body
         );
+
         return $message;
     }
 
@@ -176,12 +200,15 @@ class ZimbraConnector
     {
         if ($delegate) {
             $header = $this->buildDelegateAuthRequestHeaders();
+
             return $header;
         } elseif ($this->authToken) {
             $header = $this->buildAuthRequestHeaders();
+
             return $header;
         } else {
             $header = $this->buildNoAuthRequestHeaders();
+
             return $header;
         }
     }
@@ -207,6 +234,7 @@ class ZimbraConnector
                 )
             )
         );
+
         return $header;
     }
 
@@ -225,6 +253,7 @@ class ZimbraConnector
                 )
             )
         );
+
         return $header;
     }
 
@@ -240,6 +269,7 @@ class ZimbraConnector
                 )
             )
         );
+
         return $header;
     }
 
@@ -256,22 +286,32 @@ class ZimbraConnector
 
     public function countAccount($domain, $by = 'name')
     {
-        $response = $this->request('CountAccount', array(), array(
-            'domain' => array(
-                '@attributes' => array(
-                    'by' => $by
-                ),
-                '@value' => $domain
+        $response = $this->request(
+            'CountAccount',
+            array(),
+            array(
+                'domain' => array(
+                    '@attributes' => array(
+                        'by' => $by
+                    ),
+                    '@value' => $domain
+                )
             )
-        ));
+        );
 
         $coses = array();
         if (is_array($response)) {
             if (array_key_exists('@attributes', $response['cos'])) {
-                $coses[$response['cos']['@attributes']['name']] = array('count' => $response['cos']['@value'], 'id' => $response['cos']['@attributes']['id']);
+                $coses[$response['cos']['@attributes']['name']] = array(
+                    'count' => $response['cos']['@value'],
+                    'id' => $response['cos']['@attributes']['id']
+                );
             } else {
                 foreach ($response['cos'] as $cos) {
-                    $coses[$cos['@attributes']['name']] = array('count' => $cos['@value'], 'id' => $cos['@attributes']['id']);
+                    $coses[$cos['@attributes']['name']] = array(
+                        'count' => $cos['@value'],
+                        'id' => $cos['@attributes']['id']
+                    );
                 }
             }
         }
@@ -312,28 +352,36 @@ class ZimbraConnector
 
     public function getDomainId($name)
     {
-        $response = $this->request('GetDomain', array(), array(
-            'domain' => array(
-                '@attributes' => array(
-                    'by' => 'name'
-                ),
-                '@value' => $name,
+        $response = $this->request(
+            'GetDomain',
+            array(),
+            array(
+                'domain' => array(
+                    '@attributes' => array(
+                        'by' => 'name'
+                    ),
+                    '@value' => $name,
+                )
             )
-        ));
+        );
 
         return $response['domain']['@attributes']['id'];
     }
 
     public function getDomain($name)
     {
-        $response = $this->request('GetDomain', array(), array(
-            'domain' => array(
-                '@attributes' => array(
-                    'by' => 'name'
-                ),
-                '@value' => $name,
+        $response = $this->request(
+            'GetDomain',
+            array(),
+            array(
+                'domain' => array(
+                    '@attributes' => array(
+                        'by' => 'name'
+                    ),
+                    '@value' => $name,
+                )
             )
-        ));
+        );
 
         $domain = $this->createDomainArrayFromResponse($response);
 
@@ -342,14 +390,18 @@ class ZimbraConnector
 
     public function getDomainById($zimbraDomainId)
     {
-        $response = $this->request('GetDomain', array(), array(
-            'domain' => array(
-                '@attributes' => array(
-                    'by' => 'id'
-                ),
-                '@value' => $zimbraDomainId,
+        $response = $this->request(
+            'GetDomain',
+            array(),
+            array(
+                'domain' => array(
+                    '@attributes' => array(
+                        'by' => 'id'
+                    ),
+                    '@value' => $zimbraDomainId,
+                )
             )
-        ));
+        );
 
         $domain = $this->createDomainArrayFromResponse($response);
 
@@ -360,21 +412,29 @@ class ZimbraConnector
 
     public function modifyDomain($id, $attributes)
     {
-        $a =  $this->getAArray($attributes);
-        $this->request('ModifyDomain', array(), array(
-            'id' => $id,
-            'a' => $a
-        ));
+        $a = $this->getAArray($attributes);
+        $this->request(
+            'ModifyDomain',
+            array(),
+            array(
+                'id' => $id,
+                'a' => $a
+            )
+        );
     }
 
     public function createAccount($name, $password, $attributes, &$returnAttributes = array())
     {
         $a = $this->getAArray($attributes);
-        $response = $this->request('CreateAccount', array(), array(
-            'name' => $name,
-            'password' => $password,
-            'a' => $a
-        ));
+        $response = $this->request(
+            'CreateAccount',
+            array(),
+            array(
+                'name' => $name,
+                'password' => $password,
+                'a' => $a
+            )
+        );
 
         $returnAttributes = array();
         foreach ($response['account']['a'] as $node) {
@@ -386,42 +446,54 @@ class ZimbraConnector
 
     public function getAccountCosId($name)
     {
-        $response = $this->request('GetAccountInfo', array(), array(
-            'account' => array(
-                '@attributes' => array(
-                    'by' => 'name'
-                ),
-                '@value' => $name
+        $response = $this->request(
+            'GetAccountInfo',
+            array(),
+            array(
+                'account' => array(
+                    '@attributes' => array(
+                        'by' => 'name'
+                    ),
+                    '@value' => $name
+                )
             )
-        ));
+        );
 
         return $response['cos']['@attributes']['id'];
     }
 
     public function getAccount($name)
     {
-        $response = $this->request('GetAccount', array(), array(
-            'account' => array(
-                '@attributes' => array(
-                    'by' => 'name'
-                ),
-                '@value' => $name
+        $response = $this->request(
+            'GetAccount',
+            array(),
+            array(
+                'account' => array(
+                    '@attributes' => array(
+                        'by' => 'name'
+                    ),
+                    '@value' => $name
+                )
             )
-        ));
+        );
 
         return $this->convertResponseArrayToAccountDetails($response);
     }
 
     public function getAccounts($domainName)
     {
-        $response = $this->request('GetAllAccounts', array(), array(
-            'domain' => array(
-                '@attributes' => array(
-                    'by' => 'name'
-                ),
-                '@value' => $domainName
+        $response = $this->request(
+            'GetAllAccounts',
+            array(),
+            array(
+                'domain' => array(
+                    '@attributes' => array(
+                        'by' => 'name'
+                    ),
+                    '@value' => $domainName
+                )
             )
-        ));
+        );
 
         $accounts = array();
         if (array_key_exists('a', $response['account'])) {
@@ -450,14 +522,18 @@ class ZimbraConnector
 
     public function getDls($domainName)
     {
-        $response = $this->request('GetDistributionList', array(), array(
-            'domain' => array(
-                '@attributes' => array(
-                    'by' => 'name'
-                ),
-                '@value' => $domainName
+        $response = $this->request(
+            'GetDistributionList',
+            array(),
+            array(
+                'domain' => array(
+                    '@attributes' => array(
+                        'by' => 'name'
+                    ),
+                    '@value' => $domainName
+                )
             )
-        ));
+        );
 
         $accounts = array();
         if (array_key_exists('a', $response['dl'])) {
@@ -492,34 +568,45 @@ class ZimbraConnector
     public function modifyAccount($id, $attributes)
     {
         $a = $this->getAArray($attributes);
-        $response = $this->request('ModifyAccount', array(), array(
-            'id' => $id,
-            'a' => $a
-        ));
+        $response = $this->request(
+            'ModifyAccount',
+            array(),
+            array(
+                'id' => $id,
+                'a' => $a
+            )
+        );
 
         return $response;
     }
 
     public function renameAccount($id, $newAddress)
     {
-        $response = $this->request('RenameAccount', array(
-            'newName' => $newAddress,
-            'id' => $id
-        ));
+        $response = $this->request(
+            'RenameAccount',
+            array(
+                'newName' => $newAddress,
+                'id' => $id
+            )
+        );
 
         return $response;
     }
 
     public function getAccountId($name)
     {
-        $response = $this->request('GetAccount', array(), array(
-            'account' => array(
-                '@attributes' => array(
-                    'by' => 'name'
-                ),
-                '@value' => $name
+        $response = $this->request(
+            'GetAccount',
+            array(),
+            array(
+                'account' => array(
+                    '@attributes' => array(
+                        'by' => 'name'
+                    ),
+                    '@value' => $name
+                )
             )
-        ));
+        );
 
         return $response['account']['@attributes']['id'];
     }
@@ -527,49 +614,69 @@ class ZimbraConnector
     public function addAccountAlias($id, $alias, $attributes = array())
     {
         $a = $this->getAArray($attributes);
-        $this->request('AddAccountAlias', array(), array(
-            'id' => $id,
-            'alias' => $alias,
-            'a' => $a
-        ));
+        $this->request(
+            'AddAccountAlias',
+            array(),
+            array(
+                'id' => $id,
+                'alias' => $alias,
+                'a' => $a
+            )
+        );
     }
 
     public function removeAccountAlias($id, $alias)
     {
-        $this->request('RemoveAccountAlias', array(), array(
-            'id' => $id,
-            'alias' => $alias
-        ));
+        $this->request(
+            'RemoveAccountAlias',
+            array(),
+            array(
+                'id' => $id,
+                'alias' => $alias
+            )
+        );
     }
 
     public function getDlId($name)
     {
-        $response = $this->request('GetDistributionList', array(), array(
-            'dl' => array(
-                '@attributes' => array(
-                    'by' => 'name'
-                ),
-                '@value' => $name
+        $response = $this->request(
+            'GetDistributionList',
+            array(),
+            array(
+                'dl' => array(
+                    '@attributes' => array(
+                        'by' => 'name'
+                    ),
+                    '@value' => $name
+                )
             )
-        ));
+        );
 
         return $response['dl']['@attributes']['id'];
     }
 
     public function addDlMember($id, $member)
     {
-        $this->request('AddDistributionListMember', array(), array(
-            'id' => $id,
-            'dlm' => $member
-        ));
+        $this->request(
+            'AddDistributionListMember',
+            array(),
+            array(
+                'id' => $id,
+                'dlm' => $member
+            )
+        );
     }
 
     public function removeDlMember($id, $member)
     {
-        $this->request('RemoveDistributionListMember', array(), array(
-            'id' => $id,
-            'member' => $member
-        ));
+        $this->request(
+            'RemoveDistributionListMember',
+            array(),
+            array(
+                'id' => $id,
+                'member' => $member
+            )
+        );
     }
 
     public function createDl($name, $attributes, $views)
@@ -583,12 +690,16 @@ class ZimbraConnector
                 '@value' => $view
             );
         }
-        $response = $this->request('CreateDistributionList', array(), array(
-            'name' => array(
-                '@value' => $name
-            ),
-            'a' => $a
-        ));
+        $response = $this->request(
+            'CreateDistributionList',
+            array(),
+            array(
+                'name' => array(
+                    '@value' => $name
+                ),
+                'a' => $a
+            )
+        );
 
 
         return $response['dl']['@attributes']['id'];
@@ -596,21 +707,29 @@ class ZimbraConnector
 
     public function deleteDl($id)
     {
-        $this->request('DeleteDistributionList', array(), array(
-            'id' => $id
-        ));
+        $this->request(
+            'DeleteDistributionList',
+            array(),
+            array(
+                'id' => $id
+            )
+        );
     }
 
     public function getCosId($name)
     {
-        $response = $this->request('GetCos', array(), array(
-            'cos' => array(
-                '@attributes' => array(
-                    'by' => 'name'
-                ),
-                '@value' => $name
+        $response = $this->request(
+            'GetCos',
+            array(),
+            array(
+                'cos' => array(
+                    '@attributes' => array(
+                        'by' => 'name'
+                    ),
+                    '@value' => $name
+                )
             )
-        ));
+        );
 
         return $response['cos']['@attributes']['id'];
     }
@@ -629,84 +748,96 @@ class ZimbraConnector
 
     public function grantRight($target, $targetType, $grantee, $granteeType, $right, $deny = 0)
     {
-        $response = $this->request('GrantRight', array(), array(
-            'target' => array(
-                '@attributes' => array(
-                    'by' => 'name',
-                    'type' => $targetType
+        $response = $this->request(
+            'GrantRight',
+            array(),
+            array(
+                'target' => array(
+                    '@attributes' => array(
+                        'by' => 'name',
+                        'type' => $targetType
+                    ),
+                    '@value' => $target
                 ),
-                '@value' => $target
-            ),
-            'grantee' => array(
-                '@attributes' => array(
-                    'by' => 'name',
-                    'type' => $granteeType
+                'grantee' => array(
+                    '@attributes' => array(
+                        'by' => 'name',
+                        'type' => $granteeType
+                    ),
+                    '@value' => $grantee
                 ),
-                '@value' => $grantee
-            ),
-            'right' => array(
-                '@attributes' => array(
-                    'deny' => $deny
-                ),
-                '@value' => $right
+                'right' => array(
+                    '@attributes' => array(
+                        'deny' => $deny
+                    ),
+                    '@value' => $right
+                )
             )
-        ));
+        );
 
         return $response;
     }
 
     public function revokeRight($target, $targetType, $grantee, $granteeType, $right, $deny = 0)
     {
-        $response = $this->request('RevokeRight', array(), array(
-            'target' => array(
-                '@attributes' => array(
-                    'by' => 'name',
-                    'type' => $targetType
+        $response = $this->request(
+            'RevokeRight',
+            array(),
+            array(
+                'target' => array(
+                    '@attributes' => array(
+                        'by' => 'name',
+                        'type' => $targetType
+                    ),
+                    '@value' => $target
                 ),
-                '@value' => $target
-            ),
-            'grantee' => array(
-                '@attributes' => array(
-                    'by' => 'name',
-                    'type' => $granteeType
+                'grantee' => array(
+                    '@attributes' => array(
+                        'by' => 'name',
+                        'type' => $granteeType
+                    ),
+                    '@value' => $grantee
                 ),
-                '@value' => $grantee
-            ),
-            'right' => array(
-                '@attributes' => array(
-                    'deny' => $deny
-                ),
-                '@value' => $right
+                'right' => array(
+                    '@attributes' => array(
+                        'deny' => $deny
+                    ),
+                    '@value' => $right
+                )
             )
-        ));
+        );
 
         return $response;
     }
 
     public function enableArchive($account, $archiveAccount, $cos, $archive = true)
     {
-        $response = $this->request('EnableArchive', array(), array(
-            'account' => array(
-                '@attributes' => array(
-                    'by' => 'name',
-                ),
-                '@value' => $account
-            ),
-            'archive' => array(
-                '@attributes' => array(
-                    'create' => $archive ? '1' : '0',
-                ),
-                'name' => array(
-                    '@value' => $archiveAccount
-                ),
-                'cos' => array(
+        $response = $this->request(
+            'EnableArchive',
+            array(),
+            array(
+                'account' => array(
                     '@attributes' => array(
                         'by' => 'name',
                     ),
-                    '@value' => $cos
+                    '@value' => $account
+                ),
+                'archive' => array(
+                    '@attributes' => array(
+                        'create' => $archive ? '1' : '0',
+                    ),
+                    'name' => array(
+                        '@value' => $archiveAccount
+                    ),
+                    'cos' => array(
+                        '@attributes' => array(
+                            'by' => 'name',
+                        ),
+                        '@value' => $cos
+                    )
                 )
             )
-        ));
+        );
 
         return $response;
     }
@@ -714,14 +845,18 @@ class ZimbraConnector
     public function delegateAuth($account)
     {
         if ($this->delegatedAuthAccount != $account) {
-            $response = $this->request('DelegateAuth', array(), array(
-                'account' => array(
-                    '@attributes' => array(
-                        'by' => 'name'
-                    ),
-                    '@value' => $account
+            $response = $this->request(
+                'DelegateAuth',
+                array(),
+                array(
+                    'account' => array(
+                        '@attributes' => array(
+                            'by' => 'name'
+                        ),
+                        '@value' => $account
+                    )
                 )
-            ));
+            );
 
             $this->delegatedAuthToken = $response['authToken'];
             $this->delegatedAuthAccount = $account;
@@ -736,39 +871,44 @@ class ZimbraConnector
     {
         $this->delegateAuth($account);
 
-        $response = $this->request('ModifyFilterRules', array(), array(
-            'filterRules' => array(
-                'filterRule' => array(
-                    '@attributes' => array(
-                        'name' => 'Archive_Read',
-                        'active' => '1'
-                    ),
-                    'filterTests' => array(
+        $response = $this->request(
+            'ModifyFilterRules',
+            array(),
+            array(
+                'filterRules' => array(
+                    'filterRule' => array(
                         '@attributes' => array(
-                            'condition' => 'anyof'
+                            'name' => 'Archive_Read',
+                            'active' => '1'
                         ),
-                        'headerTest' => array(
+                        'filterTests' => array(
                             '@attributes' => array(
-                                'index' => '0',
-                                'caseSensitive' => '0',
-                                'value' => '*',
-                                'negative' => '0',
-                                'stringComparison' => 'matches',
-                                'header' => 'from'
+                                'condition' => 'anyof'
+                            ),
+                            'headerTest' => array(
+                                '@attributes' => array(
+                                    'index' => '0',
+                                    'caseSensitive' => '0',
+                                    'value' => '*',
+                                    'negative' => '0',
+                                    'stringComparison' => 'matches',
+                                    'header' => 'from'
+                                )
                             )
-                        )
-                    ),
-                    'filterActions' => array(
-                        'actionFlag' => array(
-                            '@attributes' => array(
-                                'index' => 0,
-                                'flagName' => 'read'
+                        ),
+                        'filterActions' => array(
+                            'actionFlag' => array(
+                                '@attributes' => array(
+                                    'index' => 0,
+                                    'flagName' => 'read'
+                                )
                             )
                         )
                     )
                 )
-            )
-        ), true);
+            ),
+            true
+        );
 
         return $response;
     }
@@ -777,21 +917,26 @@ class ZimbraConnector
     {
         $this->delegateAuth($account);
 
-        $response = $this->request('FolderAction', array(), array(
-            'action' => array(
-                '@attributes' => array(
-                    'id' => $folderId,
-                    'op' => 'grant'
-                ),
-                'grant' => array(
+        $response = $this->request(
+            'FolderAction',
+            array(),
+            array(
+                'action' => array(
                     '@attributes' => array(
-                        'd' => $grantee,
-                        'gt' => 'usr',
-                        'perm' => $permission
+                        'id' => $folderId,
+                        'op' => 'grant'
+                    ),
+                    'grant' => array(
+                        '@attributes' => array(
+                            'd' => $grantee,
+                            'gt' => 'usr',
+                            'perm' => $permission
+                        )
                     )
                 )
-            )
-        ), true);
+            ),
+            true
+        );
 
         return $response;
     }
@@ -800,13 +945,18 @@ class ZimbraConnector
     {
         $this->delegateAuth($account);
 
-        $response = $this->request('GetFolder', array(), array(
-            'folder' => array(
-                '@attributes' => array(
-                    'l' => $folderId
+        $response = $this->request(
+            'GetFolder',
+            array(),
+            array(
+                'folder' => array(
+                    '@attributes' => array(
+                        'l' => $folderId
+                    )
                 )
-            )
-        ), true);
+            ),
+            true
+        );
 
         return $response;
     }
@@ -824,51 +974,64 @@ class ZimbraConnector
     {
         $this->delegateAuth($account);
 
-        $response = $this->request('CreateMountpoint', array(), array(
-            'link' => array(
-                '@attributes' => array(
-                    'reminder' => $reminder,
-                    'name' => $name,
-                    'path' => $path,
-                    'owner' => $owner,
-                    'view' => $view,
-                    'l' => 1
+        $response = $this->request(
+            'CreateMountpoint',
+            array(),
+            array(
+                'link' => array(
+                    '@attributes' => array(
+                        'reminder' => $reminder,
+                        'name' => $name,
+                        'path' => $path,
+                        'owner' => $owner,
+                        'view' => $view,
+                        'l' => 1
+                    )
                 )
-            )
-        ), true);
+            ),
+            true
+        );
 
         return $response;
     }
 
     public function disableArchive($account)
     {
-        $response = $this->request('DisableArchive', array(), array(
-            'account' => array(
-                '@attributes' => array(
-                    'by' => 'name'
-                ),
-                '@value' => $account
+        $response = $this->request(
+            'DisableArchive',
+            array(),
+            array(
+                'account' => array(
+                    '@attributes' => array(
+                        'by' => 'name'
+                    ),
+                    '@value' => $account
+                )
             )
-        ));
+        );
 
         return $response;
     }
 
     public function createGalSyncAccount($account, $domain)
     {
-        $response = $this->request('CreateGalSyncAccount', array(
-            'name' => 'InternalGAL',
-            'domain' => $domain,
-            'type' => 'zimbra',
-            'folder' => '_InternalGal'
-        ), array(
-            'account' => array(
-                '@attributes' => array(
-                    'by' => 'name'
-                ),
-                '@value' => $account
+        $response = $this->request(
+            'CreateGalSyncAccount',
+            array(
+                'name' => 'InternalGAL',
+                'domain' => $domain,
+                'type' => 'zimbra',
+                'folder' => '_InternalGal'
+            ),
+            array(
+                'account' => array(
+                    '@attributes' => array(
+                        'by' => 'name'
+                    ),
+                    '@value' => $account
+                )
             )
-        ));
+        );
 
         return $response;
     }
@@ -876,7 +1039,9 @@ class ZimbraConnector
     public function createAliasDomain($alias, $domainId)
     {
         $a = $this->getAArray(array('zimbraDomainType' => 'alias', 'zimbraDomainAliasTargetId' => $domainId));
-        $response = $this->request('CreateDomain', array(),
+        $response = $this->request(
+            'CreateDomain',
+            array(),
             array(
                 'domain' => array(
                     '@attributes' => array(
@@ -908,7 +1073,7 @@ class ZimbraConnector
             }
         }
 
-        return $used . '/' . $quota;
+        return $used.'/'.$quota;
     }
 
     public function getFolderByName($accountName, $folderName)
@@ -929,12 +1094,16 @@ class ZimbraConnector
     {
         if (strpos($folderName, '/') > -1) {
 
-            throw new \InvalidArgumentException("Invalid folder name, $folderName, folder names cannot contain forward slash charaters. You must provide the parent folder ID to create a subfolder.");
+            throw new \InvalidArgumentException(
+                "Invalid folder name, $folderName, folder names cannot contain forward slash charaters. You must provide the parent folder ID to create a subfolder."
+            );
         }
 
         $this->delegateAuth($accountName);
 
-        $response = $this->request('CreateFolder', array(),
+        $response = $this->request(
+            'CreateFolder',
+            array(),
             array(
                 'folder' => array(
                     '@attributes' => array(
@@ -955,14 +1124,16 @@ class ZimbraConnector
             $contactsFolder = $this->getFolderByName($accountName, 'Contacts');
             if (!$contactsFolder) {
 
-                throw new SoapFaultException('Contacts folder not found on ' . $accountName);
+                throw new SoapFaultException('Contacts folder not found on '.$accountName);
             }
             $contactsFolderId = $contactsFolder['@attributes']['id'];
         } else {
             $this->delegateAuth($accountName);
         }
 
-        $response = $this->request('CreateContact', array(),
+        $response = $this->request(
+            'CreateContact',
+            array(),
             array(
                 'cn' => array(
                     '@attributes' => array(
@@ -981,7 +1152,9 @@ class ZimbraConnector
     {
         $this->delegateAuth($accountName);
 
-        $response = $this->request('CreateSignature', array(),
+        $response = $this->request(
+            'CreateSignature',
+            array(),
             array(
                 'signature' => array(
                     '@attributes' => array(
@@ -995,7 +1168,8 @@ class ZimbraConnector
                     )
                 )
             ),
-            true, 'Account'
+            true,
+            'Account'
         );
 
         return $response['signature']['@attributes']['id'];
@@ -1030,7 +1204,9 @@ class ZimbraConnector
     {
         $this->delegateAuth($accountName);
 
-        $response = $this->request('CreateTag', array(),
+        $response = $this->request(
+            'CreateTag',
+            array(),
             array(
                 'tag' => array(
                     '@attributes' => array(
@@ -1048,7 +1224,9 @@ class ZimbraConnector
     {
         $this->delegateAuth($accountName);
 
-        $this->request('ContactAction', array(),
+        $this->request(
+            'ContactAction',
+            array(),
             array(
                 'action' => array(
                     '@attributes' => array(
@@ -1065,14 +1243,18 @@ class ZimbraConnector
 
     public function getDl($emailAddress)
     {
-        $response = $this->request('GetDistributionList', array(), array(
-            'dl' => array(
-                '@attributes' => array(
-                    'by' => 'name'
-                ),
-                '@value' => $emailAddress
+        $response = $this->request(
+            'GetDistributionList',
+            array(),
+            array(
+                'dl' => array(
+                    '@attributes' => array(
+                        'by' => 'name'
+                    ),
+                    '@value' => $emailAddress
+                )
             )
-        ));
+        );
 
         $dl = array();
         $dl['id'] = $response['dl']['@attributes']['id'];
@@ -1085,10 +1267,13 @@ class ZimbraConnector
 
     public function setPassword($accountId, $newPassword)
     {
-        $this->request('SetPassword', array(
-            'newPassword' => $newPassword,
-            'id' => $accountId
-        ));
+        $this->request(
+            'SetPassword',
+            array(
+                'newPassword' => $newPassword,
+                'id' => $accountId
+            )
+        );
     }
 
     public function createIdentity($accountName, $name, $fromAddress = null, $fromDisplay = null)
@@ -1107,28 +1292,65 @@ class ZimbraConnector
             $attr,
             'name'
         );
-        $this->request('CreateIdentity', array(), array(
-            'identity' => array(
-                '@attributes' => array(
-                    'name' => $name,
-                ),
-                'a' => $aArray,
-            )
-        ), true, 'Account');
+        $this->request(
+            'CreateIdentity',
+            array(),
+            array(
+                'identity' => array(
+                    '@attributes' => array(
+                        'name' => $name,
+                    ),
+                    'a' => $aArray,
+                )
+            ),
+            true,
+            'Account'
+        );
     }
 
     public function getAccountById($accountId)
     {
-        $response = $this->request('GetAccount', array(), array(
-            'account' => array(
-                '@attributes' => array(
-                    'by' => 'id'
-                ),
-                '@value' => $accountId
+        $response = $this->request(
+            'GetAccount',
+            array(),
+            array(
+                'account' => array(
+                    '@attributes' => array(
+                        'by' => 'id'
+                    ),
+                    '@value' => $accountId
+                )
             )
-        ));
+        );
 
         return $this->convertResponseArrayToAccountDetails($response);
+    }
+
+    public function importCalendar($account, $icsCalendarStream)
+    {
+        if (is_null($this->restServerBaseUrl)) {
+
+            throw new MissingConfigurationException('The REST server base URL is required to use REST based calls');
+        }
+
+        $delegateAuthResult = $this->delegateAuth($account);
+
+        if (false === $delegateAuthResult) {
+
+            throw new DelegatedAuthDeniedException("Could not delegate authentication for {$account}");
+        }
+
+        $response = $this->httpClient->request(
+            'POST',
+            "{$this->restServerBaseUrl}/service/home/{$account}/calendar?fmt=ics&auth=qp&zauthtoken={$delegateAuthResult['authToken']}",
+            $icsCalendarStream
+        );
+
+        $headers = $response->getHeaders();
+        if ($headers['Status-Code'] != 200) {
+
+            throw new RestErrorException($response->getBody());
+        }
     }
 
     /**
