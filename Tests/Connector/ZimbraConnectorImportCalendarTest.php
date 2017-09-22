@@ -170,6 +170,17 @@ class ZimbraConnectorImportCalendarTest extends ZimbraConnectorTestCase
         $this->client->shouldHaveReceived('request')->with(m::any(), m::any(), 'any string stream');
     }
 
+    /**
+     * @test
+     * @expectedException \Synaq\ZasaBundle\Exception\RestErrorException
+     * @expectedExceptionMessage Something went wrong
+     */
+    public function throwsRestErrorExceptionIfTheRestServerReturnsAnyResponseOtherThan200Okay()
+    {
+        $this->client->shouldReceive('request')->andReturn($this->restHttpFailResponse())->byDefault();
+        $this->connector->importCalendar(null, null);
+    }
+
     protected function setUp()
     {
         parent::setUp();
@@ -193,6 +204,8 @@ class ZimbraConnectorImportCalendarTest extends ZimbraConnectorTestCase
             )
         )->byDefault();
         $this->connector->shouldIgnoreMissing();
+
+        $this->client->shouldReceive('request')->andReturn($this->restHttpOkResponse())->byDefault();
     }
 
     private function expectDelegatedAuthAndReturnToken($token)
@@ -243,5 +256,32 @@ class ZimbraConnectorImportCalendarTest extends ZimbraConnectorTestCase
         $httpHead .= "\r\n";
 
         return $httpHead;
+    }
+
+    private function restHttpOkResponse()
+    {
+        $raw = "HTTP/1.1 200 OK\r\n";
+        $raw .= "Date: Wed, 07 Aug 2013 11:09:37 GMT\r\n";
+        $raw .= "Expires: Thu, 01 Jan 1970 00:00:00 GMT\r\n";
+        $raw .= "Content-Type: application/json;charset=UTF-8\r\n";
+        $raw .= "Cache-Control: no-store, no-cache\r\n";
+        $raw .= "Content-Length: 0\r\n";
+        $raw .= "\r\n";
+
+        return new Response($raw);
+    }
+
+    private function restHttpFailResponse()
+    {
+        $raw = "HTTP/1.1 500 Internal Server Error\r\n";
+        $raw .= "Date: Wed, 07 Aug 2013 11:09:37 GMT\r\n";
+        $raw .= "Expires: Thu, 01 Jan 1970 00:00:00 GMT\r\n";
+        $raw .= "Content-Type: application/json;charset=UTF-8\r\n";
+        $raw .= "Cache-Control: no-store, no-cache\r\n";
+        $raw .= "Content-Length: 519\r\n";
+        $raw .= "\r\n";
+        $raw .= "Something went wrong";
+
+        return new Response($raw);
     }
 }

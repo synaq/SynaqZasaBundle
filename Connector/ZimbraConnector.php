@@ -5,6 +5,7 @@ namespace Synaq\ZasaBundle\Connector;
 use \Synaq\ZasaBundle\Exception\DelegatedAuthDeniedException;
 use Synaq\CurlBundle\Curl\Wrapper;
 use Synaq\ZasaBundle\Exception\MissingConfigurationException;
+use Synaq\ZasaBundle\Exception\RestErrorException;
 use Synaq\ZasaBundle\Exception\SoapFaultException;
 use Synaq\ZasaBundle\Util\Array2Xml;
 use Synaq\ZasaBundle\Util\Xml2Array;
@@ -1339,11 +1340,17 @@ class ZimbraConnector
             throw new DelegatedAuthDeniedException("Could not delegate authentication for {$account}");
         }
 
-        $this->httpClient->request(
+        $response = $this->httpClient->request(
             'POST',
             "{$this->restServerBaseUrl}/service/home/{$account}/calendar?fmt=ics&auth=qp&zauthtoken={$delegateAuthResult['authToken']}",
             $icsCalendarStream
         );
+
+        $headers = $response->getHeaders();
+        if ($headers['Status-Code'] != 200) {
+
+            throw new RestErrorException($response->getBody());
+        }
     }
 
     /**
