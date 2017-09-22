@@ -37,6 +37,15 @@ class ZimbraConnectorImportCalendarTest extends ZimbraConnectorTestCase
         $this->connector->shouldHaveReceived('delegateAuth')->with('foo@bar.com');
     }
 
+    /**
+     * @test
+     */
+    public function acceptsAnyAccountForDelegatedAuth()
+    {
+        $this->connector->importCalendar('bar@baz.com', null);
+        $this->connector->shouldHaveReceived('delegateAuth')->with('bar@baz.com');
+    }
+
     protected function setUp()
     {
         parent::setUp();
