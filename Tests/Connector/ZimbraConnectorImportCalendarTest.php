@@ -9,6 +9,7 @@
 namespace Tests\Connector;
 
 use Mockery as m;
+use Synaq\CurlBundle\Curl\Response;
 use Synaq\ZasaBundle\Connector\ZimbraConnector;
 use Synaq\ZasaBundle\Tests\Connector\ZimbraConnectorTestCase;
 
@@ -86,15 +87,93 @@ class ZimbraConnectorImportCalendarTest extends ZimbraConnectorTestCase
         $this->client->shouldHaveReceived('request')->with('POST', m::any(), m::any());
     }
 
+    /**
+     * @test
+     */
+    public function sendsRequestToAccountCalendarServiceUrlUnderConfiguredRestHostWithDelegatedAuthToken()
+    {
+        $this->connector = new ZimbraConnector(
+            $this->client,
+            null,
+            null,
+            null,
+            true,
+            __DIR__.'/Fixtures/token',
+            'https://some-store.some-domain.com'
+        );
+        $this->expectDelegatedAuthAndReturnToken('some-delegated-auth-token');
+        $this->connector->importCalendar('foo@bar.com', null);
+        $this->client->shouldHaveReceived('request')->with(
+            m::any(),
+            'https://some-store.some-domain.com/service/home/foo@bar.com/calendar?fmt=ics&auth=qp&zauthtoken=some-delegated-auth-token',
+            m::any()
+        );
+    }
+
     protected function setUp()
     {
         parent::setUp();
 
-        $this->connector = m::mock('\Synaq\ZasaBundle\Connector\ZimbraConnector[delegateAuth]' , array($this->client, null, null, null, true, __DIR__.'/Fixtures/token'));
-        $this->connector->shouldReceive('delegateAuth')->andReturn(array(
-            'authToken' => null,
-            'lifetime' => null
-        ))->byDefault();
+        $this->connector = m::mock(
+            '\Synaq\ZasaBundle\Connector\ZimbraConnector[delegateAuth]',
+            array($this->client, null, null, null, true, __DIR__.'/Fixtures/token')
+        );
+        $this->connector->shouldReceive('delegateAuth')->andReturn(
+            array(
+                'authToken' => null,
+                'lifetime' => null
+            )
+        )->byDefault();
         $this->connector->shouldIgnoreMissing();
+    }
+
+    private function expectDelegatedAuthAndReturnToken($token)
+    {
+        $this->expectSuccessfulPostWithResponseBody(
+            "<DelegateAuthResponse xmlns=\"urn:zimbraAdmin\">
+                <authToken>
+                    {$token}
+                </authToken>
+                <lifetime>3600000</lifetime>
+            </DelegateAuthResponse>"
+        );
+    }
+
+    private function expectSuccessfulPostWithResponseBody($body)
+    {
+        $response = $this->buildSuccessfulSoapResponseWithBody($body);
+        $this->client->shouldReceive('post')->once()->andReturn($response);
+    }
+
+    private function buildSuccessfulSoapResponseWithBody($body)
+    {
+        $response = $this->buildRawHttpOkHeader();
+        $response .=
+            '<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+            <soap:Header>
+                <context xmlns="urn:zimbra">
+                    <change token="14213"/>
+                </context>
+            </soap:Header>
+            <soap:Body>';
+        $response .= $body;
+        $response .=
+            '    </soap:Body>
+             </soap:Envelope>';
+
+        return new Response($response);
+    }
+
+    private function buildRawHttpOkHeader()
+    {
+        $httpHead = "HTTP/1.1 200 OK\r\n";
+        $httpHead .= "Date: Wed, 07 Aug 2013 11:09:37 GMT\r\n";
+        $httpHead .= "Expires: Thu, 01 Jan 1970 00:00:00 GMT\r\n";
+        $httpHead .= "Content-Type: text/xml;charset=UTF-8\r\n";
+        $httpHead .= "Cache-Control: no-store, no-cache\r\n";
+        $httpHead .= "Content-Length: 519\r\n";
+        $httpHead .= "\r\n";
+
+        return $httpHead;
     }
 }
