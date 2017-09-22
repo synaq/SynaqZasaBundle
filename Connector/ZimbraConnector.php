@@ -1131,7 +1131,7 @@ class ZimbraConnector
 
         if (false === $result) {
 
-            throw new DelegatedAuthDeniedException('Could not delegate authentication for foo@bar.com');
+            throw new DelegatedAuthDeniedException("Could not delegate authentication for {$account}");
         }
     }
 
