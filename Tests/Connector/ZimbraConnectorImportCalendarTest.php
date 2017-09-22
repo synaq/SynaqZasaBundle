@@ -110,6 +110,29 @@ class ZimbraConnectorImportCalendarTest extends ZimbraConnectorTestCase
         );
     }
 
+    /**
+     * @test
+     */
+    public function acceptsAnyRestUrlAndAccountAndAuthTokenCombination()
+    {
+        $this->connector = new ZimbraConnector(
+            $this->client,
+            null,
+            null,
+            null,
+            true,
+            __DIR__.'/Fixtures/token',
+            'http://any-store.any-domain.com'
+        );
+        $this->expectDelegatedAuthAndReturnToken('any-delegated-auth-token');
+        $this->connector->importCalendar('bar@baz.com', null);
+        $this->client->shouldHaveReceived('request')->with(
+            m::any(),
+            'http://any-store.any-domain.com/service/home/bar@baz.com/calendar?fmt=ics&auth=qp&zauthtoken=any-delegated-auth-token',
+            m::any()
+        );
+    }
+
     protected function setUp()
     {
         parent::setUp();

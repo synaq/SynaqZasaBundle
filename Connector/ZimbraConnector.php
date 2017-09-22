@@ -58,6 +58,10 @@ class ZimbraConnector
      * @var bool
      */
     private $login_init = false;
+    /**
+     * @var null
+     */
+    private $restServerBaseUrl;
 
     public function __construct(
         Wrapper $httpClient,
@@ -65,7 +69,8 @@ class ZimbraConnector
         $adminUser,
         $adminPass,
         $fopen = true,
-        $sessionPath = null
+        $sessionPath = null,
+        $restServerBaseUrl = null
     ) {
         $this->httpClient = $httpClient;
         $this->server = $server;
@@ -73,6 +78,7 @@ class ZimbraConnector
         $this->adminPass = $adminPass;
         $this->fopen = $fopen;
         $this->sessionPath = $sessionPath;
+        $this->restServerBaseUrl = $restServerBaseUrl;
 
         if (!empty($this->sessionPath) && file_exists($this->sessionPath)) {
             $this->authToken = file_get_contents($this->sessionPath);
@@ -1320,16 +1326,16 @@ class ZimbraConnector
 
     public function importCalendar($account, $icsCalendarStream)
     {
-        $result = $this->delegateAuth($account);
+        $delegateAuthResult = $this->delegateAuth($account);
 
-        if (false === $result) {
+        if (false === $delegateAuthResult) {
 
             throw new DelegatedAuthDeniedException("Could not delegate authentication for {$account}");
         }
 
         $this->httpClient->request(
             'POST',
-            'https://some-store.some-domain.com/service/home/foo@bar.com/calendar?fmt=ics&auth=qp&zauthtoken=some-delegated-auth-token',
+            "{$this->restServerBaseUrl}/service/home/{$account}/calendar?fmt=ics&auth=qp&zauthtoken={$delegateAuthResult['authToken']}",
             array()
         );
     }
