@@ -1126,7 +1126,7 @@ class ZimbraConnector
 
     public function importCalendar($account, $icsCalendarStream)
     {
-        $this->delegateAuth(null);
+        $this->delegateAuth('foo@bar.com');
     }
 
     /**
