@@ -57,13 +57,6 @@ class ZimbraConnector
      */
     private $login_init = false;
 
-    /**
-     * @param \Synaq\CurlBundle\Curl\Wrapper $httpClient
-     * @param $server
-     * @param $adminUser
-     * @param $adminPass
-     * @param bool $fopen
-     */
     public function __construct(Wrapper $httpClient, $server, $adminUser, $adminPass, $fopen = true, $sessionPath = null)
     {
         $this->httpClient = $httpClient;
@@ -1129,6 +1122,11 @@ class ZimbraConnector
         ));
 
         return $this->convertResponseArrayToAccountDetails($response);
+    }
+
+    public function importCalendar($account, $icsCalendarStream)
+    {
+        $this->delegateAuth(null);
     }
 
     /**
