@@ -161,6 +161,15 @@ class ZimbraConnectorImportCalendarTest extends ZimbraConnectorTestCase
         $this->client->shouldHaveReceived('request')->with(m::any(), m::any(), 'some string stream');
     }
 
+    /**
+     * @test
+     */
+    public function acceptsAnyIcsCalendarStream()
+    {
+        $this->connector->importCalendar(null, 'any string stream');
+        $this->client->shouldHaveReceived('request')->with(m::any(), m::any(), 'any string stream');
+    }
+
     protected function setUp()
     {
         parent::setUp();
