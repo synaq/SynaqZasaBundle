@@ -22,6 +22,25 @@ class ZimbraConnectorImportCalendarTest extends ZimbraConnectorTestCase
 
     /**
      * @test
+     * @expectedException \Synaq\ZasaBundle\Exception\MissingConfigurationException
+     * @expectedExceptionMessage The REST server base URL is required to use REST based calls
+     */
+    public function throwsMissingConfigurationExceptionIfRestServerBaseUrlIsNotConfigured()
+    {
+        $this->connector = new ZimbraConnector(
+            $this->client,
+            null,
+            null,
+            null,
+            true,
+            __DIR__.'/Fixtures/token'
+        );
+
+        $this->connector->importCalendar(null, null);
+    }
+
+    /**
+     * @test
      */
     public function performsDelegatedAuthOnce()
     {
@@ -135,21 +154,11 @@ class ZimbraConnectorImportCalendarTest extends ZimbraConnectorTestCase
 
     /**
      * @test
-     * @expectedException \Synaq\ZasaBundle\Exception\MissingConfigurationException
-     * @expectedExceptionMessage The REST server base URL is required to use REST based calls
      */
-    public function throwsMissingConfigurationExceptionIfRestServerBaseUrlIsNotConfigured()
+    public function sendsTheIcsCalendarStreamAsTheBodyOfTheRequest()
     {
-        $this->connector = new ZimbraConnector(
-            $this->client,
-            null,
-            null,
-            null,
-            true,
-            __DIR__.'/Fixtures/token'
-        );
-
-        $this->connector->importCalendar(null, null);
+        $this->connector->importCalendar(null, 'some string stream');
+        $this->client->shouldHaveReceived('request')->with(m::any(), m::any(), 'some string stream');
     }
 
     protected function setUp()

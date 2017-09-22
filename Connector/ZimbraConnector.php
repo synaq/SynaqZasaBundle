@@ -1342,7 +1342,7 @@ class ZimbraConnector
         $this->httpClient->request(
             'POST',
             "{$this->restServerBaseUrl}/service/home/{$account}/calendar?fmt=ics&auth=qp&zauthtoken={$delegateAuthResult['authToken']}",
-            array()
+            'some string stream'
         );
     }
 
