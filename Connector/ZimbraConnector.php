@@ -4,6 +4,7 @@ namespace Synaq\ZasaBundle\Connector;
 
 use \Synaq\ZasaBundle\Exception\DelegatedAuthDeniedException;
 use Synaq\CurlBundle\Curl\Wrapper;
+use Synaq\ZasaBundle\Exception\MissingConfigurationException;
 use Synaq\ZasaBundle\Exception\SoapFaultException;
 use Synaq\ZasaBundle\Util\Array2Xml;
 use Synaq\ZasaBundle\Util\Xml2Array;
@@ -1326,6 +1327,11 @@ class ZimbraConnector
 
     public function importCalendar($account, $icsCalendarStream)
     {
+        if (is_null($this->restServerBaseUrl)) {
+
+            throw new MissingConfigurationException('The REST server base URL is required to use REST based calls');
+        }
+
         $delegateAuthResult = $this->delegateAuth($account);
 
         if (false === $delegateAuthResult) {

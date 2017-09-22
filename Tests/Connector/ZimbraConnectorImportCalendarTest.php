@@ -133,13 +133,40 @@ class ZimbraConnectorImportCalendarTest extends ZimbraConnectorTestCase
         );
     }
 
+    /**
+     * @test
+     * @expectedException \Synaq\ZasaBundle\Exception\MissingConfigurationException
+     * @expectedExceptionMessage The REST server base URL is required to use REST based calls
+     */
+    public function throwsMissingConfigurationExceptionIfRestServerBaseUrlIsNotConfigured()
+    {
+        $this->connector = new ZimbraConnector(
+            $this->client,
+            null,
+            null,
+            null,
+            true,
+            __DIR__.'/Fixtures/token'
+        );
+
+        $this->connector->importCalendar(null, null);
+    }
+
     protected function setUp()
     {
         parent::setUp();
 
         $this->connector = m::mock(
             '\Synaq\ZasaBundle\Connector\ZimbraConnector[delegateAuth]',
-            array($this->client, null, null, null, true, __DIR__.'/Fixtures/token')
+            array(
+                $this->client,
+                null,
+                null,
+                null,
+                true,
+                __DIR__.'/Fixtures/token',
+                'https://some-store.some-domain.com'
+            )
         );
         $this->connector->shouldReceive('delegateAuth')->andReturn(
             array(
