@@ -1134,7 +1134,7 @@ class ZimbraConnector
             throw new DelegatedAuthDeniedException("Could not delegate authentication for {$account}");
         }
 
-        $this->httpClient->request(null, null, array());
+        $this->httpClient->request('POST', null, array());
     }
 
     /**
