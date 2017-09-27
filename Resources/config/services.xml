@@ -20,6 +20,7 @@
             <argument>%synaq_zasa.admin_pass%</argument>
             <argument>%synaq_zasa.use_fopen%</argument>
             <argument>%synaq_zasa.auth_token_path%</argument>
+            <argument>%synaq_zasa.rest_base_url%</argument>
         </service>
     </services>
 </container>
