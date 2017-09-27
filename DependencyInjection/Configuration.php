@@ -37,6 +37,9 @@ class Configuration implements ConfigurationInterface
             ->scalarNode('auth_token_path')
             ->defaultNull()
             ->end()
+            ->scalarNode('rest_base_url')
+            ->defaultNull()
+            ->end()
             ->end();
 
         return $treeBuilder;
