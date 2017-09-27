@@ -53,5 +53,6 @@ class SynaqZasaExtension extends Extension
         $container->setParameter('synaq_zasa.admin_pass', $config['admin_pass']);
         $container->setParameter('synaq_zasa.use_fopen', $config['use_fopen']);
         $container->setParameter('synaq_zasa.auth_token_path', $config['auth_token_path']);
+        $container->setParameter('synaq_zasa.rest_base_url', $config['rest_base_url']);
     }
 }

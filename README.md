@@ -43,6 +43,9 @@ synaq_zasa:
     server: your-zimbra-server.com
     admin_user: your-admin-user
     admin_pass: your-admin-password
+    use_fopen: true|false
+    auth_token_path: /path/to/optional/existing/auth/token
+    rest_base_url: http://your-zimbra-server-rest-url-without-service-endpoint.some-host.com
     
 synaq_curl:
     cookie_file: false
