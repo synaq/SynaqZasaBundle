@@ -8,17 +8,21 @@
         {
             "name": "Nic Parry",
             "email": "nicjparry@gmail.com"
+        },
+        {
+            "name": "Willem Viljoen",
+            "email": "willemv@synaq.com"
         }
     ],
     "minimum-stability": "stable",
     "require": {
-        "php": "^7",
+        "php": "^5.4|^7",
         "ext-curl": "*",
-        "symfony/framework-bundle": "^3.4",
+        "symfony/framework-bundle": "^2.5|^3.4",
         "synaq/curl-bundle": "^1.0"
     },
     "require-dev": {
-	    "phpunit/phpunit": "^5",
+	    "phpunit/phpunit": "^4.8|^5",
 	    "mockery/mockery": "^0.9.5"
     },
     "autoload": {

@@ -52,6 +52,50 @@ class GetDlTest extends ZimbraConnectorTestCase
         $this->assertEquals('@example.com', $dl['zimbraMailCatchAllAddress']);
     }
 
+    /**
+     * @test
+     */
+    public function returnsDlMembersInMembersArray()
+    {
+        $dl = $this->connector->getDl('some@example.com');
+        $this->assertEquals([
+            'some.member@example.com',
+            'some.other.member@example.com'
+        ], $dl['members']);
+    }
+
+    /**
+     * @test
+     */
+    public function returnsEmptyMembersArrayIfNoMembersAreReturned()
+    {
+        $getDistributionListSoapResponse =
+            '    <GetDistributionListResponse total="1" more="0" xmlns="urn:zimbraAdmin">'."\n".
+            '      <dl name="example@example.com" dynamic="0" id="dummy-dl-id">'."\n".
+            '        <a n="zimbraMailAlias">example@example.com</a>'."\n".
+            '        <a n="zimbraHideInGal">TRUE</a>'."\n".
+            '        <a n="uid">example</a>'."\n".
+            '        <a n="zimbraMailCatchAllAddress">@example.com</a>'."\n".
+            '        <a n="mail">example@example.com</a>'."\n".
+            '        <a n="zimbraId">dummy-dl-id</a>'."\n".
+            '        <a n="objectClass">zimbraDistributionList</a>'."\n".
+            '        <a n="objectClass">zimbraMailRecipient</a>'."\n".
+            '        <a n="zimbraMailHost">some-host.some-domain.com</a>'."\n".
+            '        <a n="zimbraCreateTimestamp">20160302091859Z</a>'."\n".
+            '        <a n="zimbraMailStatus">enabled</a>'."\n".
+            '      </dl>'."\n".
+            '    </GetDistributionListResponse>';
+
+        $getDistributionListResponse = new Response(
+            $this->httpOkHeaders.$this->soapHeaders.$getDistributionListSoapResponse.$this->soapFooters
+        );
+
+        $this->client->shouldReceive('post')->andReturn($getDistributionListResponse);
+
+        $dl = $this->connector->getDl('some@example.com');
+        $this->assertEquals([], $dl['members']);
+    }
+
     protected function setUp()
     {
         parent::setUp();
@@ -70,7 +114,8 @@ class GetDlTest extends ZimbraConnectorTestCase
             '        <a n="zimbraMailHost">some-host.some-domain.com</a>'."\n".
             '        <a n="zimbraCreateTimestamp">20160302091859Z</a>'."\n".
             '        <a n="zimbraMailStatus">enabled</a>'."\n".
-            '       <dlm>some-member@example.com</dlm>'."\n".
+            '       <dlm>some.member@example.com</dlm>'."\n".
+            '       <dlm>some.other.member@example.com</dlm>'."\n".
             '      </dl>'."\n".
             '    </GetDistributionListResponse>';
 
