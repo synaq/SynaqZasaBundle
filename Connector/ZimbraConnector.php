@@ -1262,6 +1262,10 @@ class ZimbraConnector
             $dl[$a['@attributes']['n']] = $a['@value'];
         }
 
+        foreach ($response['dl']['dlm'] as $member) {
+            $dl['members'][] = $member;
+        }
+
         return $dl;
     }
 

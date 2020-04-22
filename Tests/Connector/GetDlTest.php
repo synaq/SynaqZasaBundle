@@ -52,6 +52,18 @@ class GetDlTest extends ZimbraConnectorTestCase
         $this->assertEquals('@example.com', $dl['zimbraMailCatchAllAddress']);
     }
 
+    /**
+     * @test
+     */
+    public function returnsDlMembersInMembersArray()
+    {
+        $dl = $this->connector->getDl('some@example.com');
+        $this->assertEquals([
+            'some.member@example.com',
+            'some.other.member@example.com'
+        ], $dl['members']);
+    }
+
     protected function setUp()
     {
         parent::setUp();
@@ -70,7 +82,8 @@ class GetDlTest extends ZimbraConnectorTestCase
             '        <a n="zimbraMailHost">some-host.some-domain.com</a>'."\n".
             '        <a n="zimbraCreateTimestamp">20160302091859Z</a>'."\n".
             '        <a n="zimbraMailStatus">enabled</a>'."\n".
-            '       <dlm>some-member@example.com</dlm>'."\n".
+            '       <dlm>some.member@example.com</dlm>'."\n".
+            '       <dlm>some.other.member@example.com</dlm>'."\n".
             '      </dl>'."\n".
             '    </GetDistributionListResponse>';
 
