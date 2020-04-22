@@ -1262,6 +1262,8 @@ class ZimbraConnector
             $dl[$a['@attributes']['n']] = $a['@value'];
         }
 
+        $dl['members'] = [];
+        if (array_key_exists('dlm', $response['dl']))
         foreach ($response['dl']['dlm'] as $member) {
             $dl['members'][] = $member;
         }
