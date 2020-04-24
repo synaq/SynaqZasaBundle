@@ -1263,9 +1263,16 @@ class ZimbraConnector
         }
 
         $dl['members'] = [];
-        if (array_key_exists('dlm', $response['dl']))
-        foreach ($response['dl']['dlm'] as $member) {
-            $dl['members'][] = $member;
+        if (array_key_exists('dlm', $response['dl'])) {
+            $dlMembersResponse = $response['dl']['dlm'];
+
+            if (!is_array($dlMembersResponse)) {
+                $dlMembersResponse = [$dlMembersResponse];
+            }
+
+            foreach ($dlMembersResponse as $member) {
+                $dl['members'][] = $member;
+            }
         }
 
         return $dl;
