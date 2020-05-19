@@ -338,7 +338,7 @@ class ZimbraConnector
                 '@attributes' => array(
                     $n => $key
                 ),
-                '@value' => $value
+                '@value' => (is_bool($value) ? 'TRUE' : $value)
             );
         }
 
