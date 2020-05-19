@@ -35,6 +35,18 @@ class ModifyDistributionListTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     */
+    public function acceptsAnyId()
+    {
+        $expectedMessage = '<id>any-old-id</id>';
+        $this->connector->modifyDistributionList('any-old-id', []);
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) use ($expectedMessage) {
+            return strpos($body, $expectedMessage) > 0;
+        }), m::any(), m::any(), m::any());
+    }
+
     protected function setUp()
     {
         parent::setUp();
