@@ -1416,4 +1416,9 @@ class ZimbraConnector
 
         return $domain;
     }
+
+    public function modifyDistributionList($id, array $attributes)
+    {
+        $this->request('ModifyDistributionList');
+    }
 }
