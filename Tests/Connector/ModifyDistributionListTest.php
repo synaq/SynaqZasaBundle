@@ -83,6 +83,18 @@ class ModifyDistributionListTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     */
+    public function correctlyHandlesAttributesWhichAreLoweredFlags()
+    {
+        $expectedMessage = '<a n="flag">FALSE</a>';
+        $this->connector->modifyDistributionList(null, ['flag' => false]);
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) use ($expectedMessage) {
+            return strpos($body, $expectedMessage) > 0;
+        }), m::any(), m::any(), m::any());
+    }
+
     protected function setUp()
     {
         parent::setUp();
