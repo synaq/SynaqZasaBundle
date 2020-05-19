@@ -95,6 +95,15 @@ class ModifyDistributionListTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     */
+    public function returnsResponseFromZimbra()
+    {
+        $response = $this->connector->modifyDistributionList(null, ['flag' => false]);
+        $this->assertEquals('foo@bar.com', $response['mail']);
+    }
+
     protected function setUp()
     {
         parent::setUp();
