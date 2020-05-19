@@ -1419,11 +1419,9 @@ class ZimbraConnector
 
     public function modifyDistributionList($id, array $attributes)
     {
-        $this->request('ModifyDistributionList', [], [
+        return $this->request('ModifyDistributionList', [], [
             'id' => $id,
             'a' => $this->getAArray($attributes)
         ]);
-
-        return ['mail' => 'foo@bar.com'];
     }
 }

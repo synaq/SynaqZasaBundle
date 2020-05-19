@@ -101,7 +101,17 @@ class ModifyDistributionListTest extends ZimbraConnectorTestCase
     public function returnsResponseFromZimbra()
     {
         $response = $this->connector->modifyDistributionList(null, ['flag' => false]);
-        $this->assertEquals('foo@bar.com', $response['mail']);
+        $this->assertEquals('foo@bar.com', $response['dl']['@attributes']['name']);
+    }
+
+    /**
+     * @test
+     */
+    public function acceptsAnyResponseFromZimbra()
+    {
+        $this->client->shouldReceive('post')->andReturn($this->responseForSpecificDistributionList('bar@baz.com'));
+        $response = $this->connector->modifyDistributionList(null, ['flag' => false]);
+        $this->assertEquals('bar@baz.com', $response['dl']['@attributes']['name']);
     }
 
     protected function setUp()
@@ -120,6 +130,27 @@ class ModifyDistributionListTest extends ZimbraConnectorTestCase
     <a n="uid">foo</a>
     <a n="zimbraHideInGal">FALSE</a>
     <a n="mail">foo@bar.com</a>
+    <a n="zimbraId">some-id</a>
+    <a n="objectClass">zimbraDistributionList</a>
+    <a n="objectClass">zimbraMailRecipient</a>
+    <a n="zimbraMailHost">some-host.com</a>
+    <a n="zimbraCreateTimestamp">20200514140427Z</a>
+    <a n="zimbraMailStatus">enabled</a>
+  </dl>
+</ModifyDistributionListResponse>
+EOF;
+
+        return new Response($this->httpOkHeaders . $this->soapHeaders . $message . $this->soapFooters);
+    }
+
+    private function responseForSpecificDistributionList($address)
+    {
+        $message = <<<EOF
+<ModifyDistributionListResponse xmlns="urn:zimbraAdmin">
+  <dl name="$address" dynamic="0" id="some-id">
+    <a n="uid">foo</a>
+    <a n="zimbraHideInGal">FALSE</a>
+    <a n="mail">$address</a>
     <a n="zimbraId">some-id</a>
     <a n="objectClass">zimbraDistributionList</a>
     <a n="objectClass">zimbraMailRecipient</a>
