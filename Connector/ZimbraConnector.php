@@ -1419,6 +1419,9 @@ class ZimbraConnector
 
     public function modifyDistributionList($id, array $attributes)
     {
-        $this->request('ModifyDistributionList', [], ['id' => $id]);
+        $this->request('ModifyDistributionList', [], [
+            'id' => $id,
+            'a' => $this->getAArray(['foo' => 'bar'])
+        ]);
     }
 }
