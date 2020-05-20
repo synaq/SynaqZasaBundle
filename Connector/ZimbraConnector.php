@@ -338,7 +338,7 @@ class ZimbraConnector
                 '@attributes' => array(
                     $n => $key
                 ),
-                '@value' => $value
+                '@value' => (is_bool($value) ? ($value ? 'TRUE' : 'FALSE') : $value)
             );
         }
 
@@ -1415,5 +1415,13 @@ class ZimbraConnector
         $domain['id'] = $response['domain']['@attributes']['id'];
 
         return $domain;
+    }
+
+    public function modifyDistributionList($id, array $attributes)
+    {
+        return $this->request('ModifyDistributionList', [], [
+            'id' => $id,
+            'a' => $this->getAArray($attributes)
+        ]);
     }
 }
