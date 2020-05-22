@@ -55,6 +55,17 @@ class RenameDistributionListTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     */
+    public function acceptsAnyGivenNewName()
+    {
+        $this->connector->renameDistributionList(null, 'any.name@domain.com');
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return strpos($body, 'newName="any.name@domain.com"') > 0;
+        }), m::any(), m::any(), m::any());
+    }
+
     protected function setUp()
     {
         parent::setUp();

@@ -1429,7 +1429,7 @@ class ZimbraConnector
     {
         $this->request('RenameDistributionList', [
             'id' => $id,
-            'newName' => 'some.new.name@domain.com'
+            'newName' => $newName
         ]);
     }
 }
