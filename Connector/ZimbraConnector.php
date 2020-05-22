@@ -1424,4 +1424,9 @@ class ZimbraConnector
             'a' => $this->getAArray($attributes)
         ]);
     }
+
+    public function renameDistributionList($id, $newName)
+    {
+        $this->request('RenameDistributionList');
+    }
 }

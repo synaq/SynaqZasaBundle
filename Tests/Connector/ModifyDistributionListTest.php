@@ -4,7 +4,6 @@ namespace Synaq\ZasaBundle\Tests\Connector;
 
 use Mockery as m;
 use Synaq\CurlBundle\Curl\Response;
-use Synaq\CurlBundle\Curl\Wrapper;
 use Synaq\ZasaBundle\Connector\ZimbraConnector;
 
 class ModifyDistributionListTest extends ZimbraConnectorTestCase
@@ -119,7 +118,6 @@ class ModifyDistributionListTest extends ZimbraConnectorTestCase
         parent::setUp();
         $this->client->shouldReceive('post')->andReturn($this->genericResponse())->byDefault();
         $this->connector = new ZimbraConnector($this->client, null, null, null, true, __DIR__.'/Fixtures/token');
-
     }
 
     private function genericResponse()
