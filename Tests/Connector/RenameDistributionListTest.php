@@ -27,10 +27,9 @@ class RenameDistributionListTest extends ZimbraConnectorTestCase
      */
     public function sendsTheRequestForTheGivenId()
     {
-        $expectedMessage = '<id>some-id</id>';
         $this->connector->renameDistributionList('some-id', null);
-        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) use ($expectedMessage) {
-            return strpos($body, $expectedMessage) > 0;
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return strpos($body, 'id="some-id"') > 0;
         }), m::any(), m::any(), m::any());
     }
 
@@ -39,10 +38,9 @@ class RenameDistributionListTest extends ZimbraConnectorTestCase
      */
     public function acceptsAnyId()
     {
-        $expectedMessage = '<id>any-old-id</id>';
         $this->connector->renameDistributionList('any-old-id', null);
-        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) use ($expectedMessage) {
-            return strpos($body, $expectedMessage) > 0;
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return strpos($body, 'id="any-old-id"') > 0;
         }), m::any(), m::any(), m::any());
     }
 
