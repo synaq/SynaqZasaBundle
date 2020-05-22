@@ -66,6 +66,15 @@ class RenameDistributionListTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     */
+    public function returnsResponseFromZimbra()
+    {
+        $response = $this->connector->renameDistributionList(null, null);
+        $this->assertEquals('some.list@domain.com', $response['dl']['@attributes']['name']);
+    }
+
     protected function setUp()
     {
         parent::setUp();

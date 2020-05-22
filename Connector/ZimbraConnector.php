@@ -1427,7 +1427,7 @@ class ZimbraConnector
 
     public function renameDistributionList($id, $newName)
     {
-        $this->request('RenameDistributionList', [
+        return $this->request('RenameDistributionList', [
             'id' => $id,
             'newName' => $newName
         ]);
