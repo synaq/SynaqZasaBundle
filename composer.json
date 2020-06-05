@@ -26,7 +26,11 @@
 	    "mockery/mockery": "^0.9.5"
     },
     "autoload": {
-        "psr-0": { "Synaq\\ZasaBundle": "" }
+        "psr-0": { "Synaq\\ZasaBundle": "" },
+        "psr-4": {
+            "Synaq\\ZasaBundle\\Connector\\": "Connector",
+            "Synaq\\ZasaBundle\\Tests\\Connector\\" : "Tests/Connector"
+        }
     },
     "target-dir": "Synaq/ZasaBundle"
 }

@@ -671,11 +671,10 @@ class ZimbraConnector
     {
         $this->request(
             'RemoveDistributionListMember',
-            array(),
-            array(
-                'id' => $id,
+            ['id' => $id],
+            [
                 'member' => $member
-            )
+            ]
         );
     }
 
