@@ -24,6 +24,18 @@ class RemoveDlMemberTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+
+    /**
+     * @test
+     */
+    public function sendsTheRequestForTheDlMember()
+    {
+        $this->connector->removeDlMember(null, 'foo@bar.com');
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return strpos($body, "<dlm>foo@bar.com</dlm>") > 0;
+        }), m::any(), m::any(), m::any());
+    }
+
     protected function setUp()
     {
         parent::setUp();

@@ -673,7 +673,7 @@ class ZimbraConnector
             'RemoveDistributionListMember',
             ['id' => $id],
             [
-                'member' => $member
+                'dlm' => $member
             ]
         );
     }
