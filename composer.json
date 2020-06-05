@@ -27,9 +27,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Synaq\\ZasaBundle\\Connector\\": "Connector",
-            "Synaq\\ZasaBundle\\Exception\\" : "Synaq/ZasaBundle/Exception",
-            "Synaq\\ZasaBundle\\Tests\\Connector\\" : "Tests/Connector"
+            "Synaq\\ZasaBundle\\": "",
+            "Tests\\" : "Tests"
         }
     }
 }
