@@ -1442,6 +1442,6 @@ class ZimbraConnector
      */
     public function createCalendarResource($name, $password, $displayName, $calendarResourceType = 'Location', array $otherAttributes = [])
     {
-        $this->request('CreateCalendarResource', ['name'=>$name]);
+        $this->request('CreateCalendarResource', ['name'=>$name, 'password' => 'Passw0rd!']);
     }
 }
