@@ -110,6 +110,18 @@ class CreateCalendarResourceTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function acceptsAnyCalendarResourceType()
+    {
+        $this->connector->createCalendarResource(null, null, null, 'Equipment');
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/<a n="zimbraCalResType">Equipment<\/a>/', $body) === 1;
+        }), m::any(), m::any(), m::any());
+    }
+
     protected function setUp()
     {
         parent::setUp();

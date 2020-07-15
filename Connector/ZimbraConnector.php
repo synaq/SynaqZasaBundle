@@ -1461,7 +1461,7 @@ class ZimbraConnector
             ['name' => $name, 'password' => $password],
             ['a' => $this->getAArray([
                 'displayName' => $displayName,
-                'zimbraCalResType' => 'Location'
+                'zimbraCalResType' => $calendarResourceType
             ])]
         );
     }
