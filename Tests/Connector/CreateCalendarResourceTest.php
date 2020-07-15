@@ -5,6 +5,7 @@ namespace Connector;
 use Mockery as m;
 use Synaq\CurlBundle\Curl\Response;
 use Synaq\ZasaBundle\Connector\ZimbraConnector;
+use Synaq\ZasaBundle\Exception\SoapFaultException;
 use Synaq\ZasaBundle\Tests\Connector\ZimbraConnectorTestCase;
 
 class CreateCalendarResourceTest extends ZimbraConnectorTestCase
@@ -16,6 +17,7 @@ class CreateCalendarResourceTest extends ZimbraConnectorTestCase
 
     /**
      * @test
+     * @throws SoapFaultException
      */
     public function sendsOnePostRequestToZimbra()
     {
@@ -25,12 +27,25 @@ class CreateCalendarResourceTest extends ZimbraConnectorTestCase
 
     /**
      * @test
+     * @throws SoapFaultException
      */
     public function sendsTheGivenNewNameAsAnAttribute()
     {
         $this->connector->createCalendarResource('foo@bar.com', null, null);
         $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
             return preg_match('/CreateCalendarResourceRequest.*name="foo@bar\.com"/', $body) === 1;
+        }), m::any(), m::any(), m::any());
+    }
+
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function acceptsAnyGivenName()
+    {
+        $this->connector->createCalendarResource('bar@baz.com', null, null);
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/CreateCalendarResourceRequest.*name="bar@baz\.com"/', $body) === 1;
         }), m::any(), m::any(), m::any());
     }
 

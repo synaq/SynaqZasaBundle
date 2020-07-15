@@ -1432,8 +1432,16 @@ class ZimbraConnector
         ]);
     }
 
+    /**
+     * @param $name
+     * @param $password
+     * @param $displayName
+     * @param string $calendarResourceType
+     * @param array $otherAttributes
+     * @throws SoapFaultException
+     */
     public function createCalendarResource($name, $password, $displayName, $calendarResourceType = 'Location', array $otherAttributes = [])
     {
-        $this->request('CreateCalendarResource', ['name'=>'foo@bar.com']);
+        $this->request('CreateCalendarResource', ['name'=>$name]);
     }
 }
