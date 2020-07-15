@@ -183,10 +183,10 @@ class ZimbraConnector
 
         $message = array(
             '@attributes' => array(
-                'xmlns:soap' => 'http://www.w3.org/2003/05/soap-envelope'
+                'xmlns:soap' => 'http://www.w3.org/2003/05/soap-envelope',
             ),
             'soap:Header' => $header,
-            'soap:Body' => $body
+            'soap:Body' => $body,
         );
 
         return $message;
@@ -221,18 +221,18 @@ class ZimbraConnector
         $header = array(
             'context' => array(
                 '@attributes' => array(
-                    'xmlns' => 'urn:zimbra'
+                    'xmlns' => 'urn:zimbra',
                 ),
                 'authToken' => array(
-                    '@value' => $this->delegatedAuthToken
+                    '@value' => $this->delegatedAuthToken,
                 ),
                 'account' => array(
                     '@attributes' => array(
-                        'by' => 'name'
+                        'by' => 'name',
                     ),
-                    '@value' => $this->delegatedAuthAccount
-                )
-            )
+                    '@value' => $this->delegatedAuthAccount,
+                ),
+            ),
         );
 
         return $header;
@@ -246,12 +246,12 @@ class ZimbraConnector
         $header = array(
             'context' => array(
                 '@attributes' => array(
-                    'xmlns' => 'urn:zimbra'
+                    'xmlns' => 'urn:zimbra',
                 ),
                 'authToken' => array(
-                    '@value' => $this->authToken
-                )
-            )
+                    '@value' => $this->authToken,
+                ),
+            ),
         );
 
         return $header;
@@ -265,9 +265,9 @@ class ZimbraConnector
         $header = array(
             'context' => array(
                 '@attributes' => array(
-                    'xmlns' => 'urn:zimbra'
-                )
-            )
+                    'xmlns' => 'urn:zimbra',
+                ),
+            ),
         );
 
         return $header;
@@ -292,10 +292,10 @@ class ZimbraConnector
             array(
                 'domain' => array(
                     '@attributes' => array(
-                        'by' => $by
+                        'by' => $by,
                     ),
-                    '@value' => $domain
-                )
+                    '@value' => $domain,
+                ),
             )
         );
 
@@ -304,13 +304,13 @@ class ZimbraConnector
             if (array_key_exists('@attributes', $response['cos'])) {
                 $coses[$response['cos']['@attributes']['name']] = array(
                     'count' => $response['cos']['@value'],
-                    'id' => $response['cos']['@attributes']['id']
+                    'id' => $response['cos']['@attributes']['id'],
                 );
             } else {
                 foreach ($response['cos'] as $cos) {
                     $coses[$cos['@attributes']['name']] = array(
                         'count' => $cos['@value'],
-                        'id' => $cos['@attributes']['id']
+                        'id' => $cos['@attributes']['id'],
                     );
                 }
             }
@@ -334,12 +334,14 @@ class ZimbraConnector
     {
         $a = array();
         foreach ($attributes as $key => $value) {
-            $a[] = array(
-                '@attributes' => array(
-                    $n => $key
-                ),
-                '@value' => (is_bool($value) ? ($value ? 'TRUE' : 'FALSE') : $value)
-            );
+            if (!is_null($value)) {
+                $a[] = array(
+                    '@attributes' => array(
+                        $n => $key,
+                    ),
+                    '@value' => (is_bool($value) ? ($value ? 'TRUE' : 'FALSE') : $value),
+                );
+            }
         }
 
         return $a;
@@ -358,10 +360,10 @@ class ZimbraConnector
             array(
                 'domain' => array(
                     '@attributes' => array(
-                        'by' => 'name'
+                        'by' => 'name',
                     ),
                     '@value' => $name,
-                )
+                ),
             )
         );
 
@@ -376,10 +378,10 @@ class ZimbraConnector
             array(
                 'domain' => array(
                     '@attributes' => array(
-                        'by' => 'name'
+                        'by' => 'name',
                     ),
                     '@value' => $name,
-                )
+                ),
             )
         );
 
@@ -396,10 +398,10 @@ class ZimbraConnector
             array(
                 'domain' => array(
                     '@attributes' => array(
-                        'by' => 'id'
+                        'by' => 'id',
                     ),
                     '@value' => $zimbraDomainId,
-                )
+                ),
             )
         );
 
@@ -418,7 +420,7 @@ class ZimbraConnector
             array(),
             array(
                 'id' => $id,
-                'a' => $a
+                'a' => $a,
             )
         );
     }
@@ -432,7 +434,7 @@ class ZimbraConnector
             array(
                 'name' => $name,
                 'password' => $password,
-                'a' => $a
+                'a' => $a,
             )
         );
 
@@ -452,10 +454,10 @@ class ZimbraConnector
             array(
                 'account' => array(
                     '@attributes' => array(
-                        'by' => 'name'
+                        'by' => 'name',
                     ),
-                    '@value' => $name
-                )
+                    '@value' => $name,
+                ),
             )
         );
 
@@ -470,10 +472,10 @@ class ZimbraConnector
             array(
                 'account' => array(
                     '@attributes' => array(
-                        'by' => 'name'
+                        'by' => 'name',
                     ),
-                    '@value' => $name
-                )
+                    '@value' => $name,
+                ),
             )
         );
 
@@ -488,10 +490,10 @@ class ZimbraConnector
             array(
                 'domain' => array(
                     '@attributes' => array(
-                        'by' => 'name'
+                        'by' => 'name',
                     ),
-                    '@value' => $domainName
-                )
+                    '@value' => $domainName,
+                ),
             )
         );
 
@@ -528,10 +530,10 @@ class ZimbraConnector
             array(
                 'domain' => array(
                     '@attributes' => array(
-                        'by' => 'name'
+                        'by' => 'name',
                     ),
-                    '@value' => $domainName
-                )
+                    '@value' => $domainName,
+                ),
             )
         );
 
@@ -573,7 +575,7 @@ class ZimbraConnector
             array(),
             array(
                 'id' => $id,
-                'a' => $a
+                'a' => $a,
             )
         );
 
@@ -586,7 +588,7 @@ class ZimbraConnector
             'RenameAccount',
             array(
                 'newName' => $newAddress,
-                'id' => $id
+                'id' => $id,
             )
         );
 
@@ -601,10 +603,10 @@ class ZimbraConnector
             array(
                 'account' => array(
                     '@attributes' => array(
-                        'by' => 'name'
+                        'by' => 'name',
                     ),
-                    '@value' => $name
-                )
+                    '@value' => $name,
+                ),
             )
         );
 
@@ -620,7 +622,7 @@ class ZimbraConnector
             array(
                 'id' => $id,
                 'alias' => $alias,
-                'a' => $a
+                'a' => $a,
             )
         );
     }
@@ -632,7 +634,7 @@ class ZimbraConnector
             array(),
             array(
                 'id' => $id,
-                'alias' => $alias
+                'alias' => $alias,
             )
         );
     }
@@ -645,10 +647,10 @@ class ZimbraConnector
             array(
                 'dl' => array(
                     '@attributes' => array(
-                        'by' => 'name'
+                        'by' => 'name',
                     ),
-                    '@value' => $name
-                )
+                    '@value' => $name,
+                ),
             )
         );
 
@@ -662,7 +664,7 @@ class ZimbraConnector
             array(),
             array(
                 'id' => $id,
-                'dlm' => $member
+                'dlm' => $member,
             )
         );
     }
@@ -673,7 +675,7 @@ class ZimbraConnector
             'RemoveDistributionListMember',
             ['id' => $id],
             [
-                'dlm' => $member
+                'dlm' => $member,
             ]
         );
     }
@@ -684,9 +686,9 @@ class ZimbraConnector
         foreach ($views as $view) {
             $a[] = array(
                 '@attributes' => array(
-                    'n' => 'zimbraAdminConsoleUIComponents'
+                    'n' => 'zimbraAdminConsoleUIComponents',
                 ),
-                '@value' => $view
+                '@value' => $view,
             );
         }
         $response = $this->request(
@@ -694,9 +696,9 @@ class ZimbraConnector
             array(),
             array(
                 'name' => array(
-                    '@value' => $name
+                    '@value' => $name,
                 ),
-                'a' => $a
+                'a' => $a,
             )
         );
 
@@ -710,7 +712,7 @@ class ZimbraConnector
             'DeleteDistributionList',
             array(),
             array(
-                'id' => $id
+                'id' => $id,
             )
         );
     }
@@ -723,10 +725,10 @@ class ZimbraConnector
             array(
                 'cos' => array(
                     '@attributes' => array(
-                        'by' => 'name'
+                        'by' => 'name',
                     ),
-                    '@value' => $name
-                )
+                    '@value' => $name,
+                ),
             )
         );
 
@@ -754,23 +756,23 @@ class ZimbraConnector
                 'target' => array(
                     '@attributes' => array(
                         'by' => 'name',
-                        'type' => $targetType
+                        'type' => $targetType,
                     ),
-                    '@value' => $target
+                    '@value' => $target,
                 ),
                 'grantee' => array(
                     '@attributes' => array(
                         'by' => 'name',
-                        'type' => $granteeType
+                        'type' => $granteeType,
                     ),
-                    '@value' => $grantee
+                    '@value' => $grantee,
                 ),
                 'right' => array(
                     '@attributes' => array(
-                        'deny' => $deny
+                        'deny' => $deny,
                     ),
-                    '@value' => $right
-                )
+                    '@value' => $right,
+                ),
             )
         );
 
@@ -786,23 +788,23 @@ class ZimbraConnector
                 'target' => array(
                     '@attributes' => array(
                         'by' => 'name',
-                        'type' => $targetType
+                        'type' => $targetType,
                     ),
-                    '@value' => $target
+                    '@value' => $target,
                 ),
                 'grantee' => array(
                     '@attributes' => array(
                         'by' => 'name',
-                        'type' => $granteeType
+                        'type' => $granteeType,
                     ),
-                    '@value' => $grantee
+                    '@value' => $grantee,
                 ),
                 'right' => array(
                     '@attributes' => array(
-                        'deny' => $deny
+                        'deny' => $deny,
                     ),
-                    '@value' => $right
-                )
+                    '@value' => $right,
+                ),
             )
         );
 
@@ -819,22 +821,22 @@ class ZimbraConnector
                     '@attributes' => array(
                         'by' => 'name',
                     ),
-                    '@value' => $account
+                    '@value' => $account,
                 ),
                 'archive' => array(
                     '@attributes' => array(
                         'create' => $archive ? '1' : '0',
                     ),
                     'name' => array(
-                        '@value' => $archiveAccount
+                        '@value' => $archiveAccount,
                     ),
                     'cos' => array(
                         '@attributes' => array(
                             'by' => 'name',
                         ),
-                        '@value' => $cos
-                    )
-                )
+                        '@value' => $cos,
+                    ),
+                ),
             )
         );
 
@@ -850,10 +852,10 @@ class ZimbraConnector
                 array(
                     'account' => array(
                         '@attributes' => array(
-                            'by' => 'name'
+                            'by' => 'name',
                         ),
-                        '@value' => $account
-                    )
+                        '@value' => $account,
+                    ),
                 )
             );
 
@@ -878,11 +880,11 @@ class ZimbraConnector
                     'filterRule' => array(
                         '@attributes' => array(
                             'name' => 'Archive_Read',
-                            'active' => '1'
+                            'active' => '1',
                         ),
                         'filterTests' => array(
                             '@attributes' => array(
-                                'condition' => 'anyof'
+                                'condition' => 'anyof',
                             ),
                             'headerTest' => array(
                                 '@attributes' => array(
@@ -891,20 +893,20 @@ class ZimbraConnector
                                     'value' => '*',
                                     'negative' => '0',
                                     'stringComparison' => 'matches',
-                                    'header' => 'from'
-                                )
-                            )
+                                    'header' => 'from',
+                                ),
+                            ),
                         ),
                         'filterActions' => array(
                             'actionFlag' => array(
                                 '@attributes' => array(
                                     'index' => 0,
-                                    'flagName' => 'read'
-                                )
-                            )
-                        )
-                    )
-                )
+                                    'flagName' => 'read',
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
             ),
             true
         );
@@ -923,16 +925,16 @@ class ZimbraConnector
                 'action' => array(
                     '@attributes' => array(
                         'id' => $folderId,
-                        'op' => 'grant'
+                        'op' => 'grant',
                     ),
                     'grant' => array(
                         '@attributes' => array(
                             'd' => $grantee,
                             'gt' => 'usr',
-                            'perm' => $permission
-                        )
-                    )
-                )
+                            'perm' => $permission,
+                        ),
+                    ),
+                ),
             ),
             true
         );
@@ -950,9 +952,9 @@ class ZimbraConnector
             array(
                 'folder' => array(
                     '@attributes' => array(
-                        'l' => $folderId
-                    )
-                )
+                        'l' => $folderId,
+                    ),
+                ),
             ),
             true
         );
@@ -984,9 +986,9 @@ class ZimbraConnector
                         'path' => $path,
                         'owner' => $owner,
                         'view' => $view,
-                        'l' => 1
-                    )
-                )
+                        'l' => 1,
+                    ),
+                ),
             ),
             true
         );
@@ -1002,10 +1004,10 @@ class ZimbraConnector
             array(
                 'account' => array(
                     '@attributes' => array(
-                        'by' => 'name'
+                        'by' => 'name',
                     ),
-                    '@value' => $account
-                )
+                    '@value' => $account,
+                ),
             )
         );
 
@@ -1020,15 +1022,15 @@ class ZimbraConnector
                 'name' => 'InternalGAL',
                 'domain' => $domain,
                 'type' => 'zimbra',
-                'folder' => '_InternalGal'
+                'folder' => '_InternalGal',
             ),
             array(
                 'account' => array(
                     '@attributes' => array(
-                        'by' => 'name'
+                        'by' => 'name',
                     ),
-                    '@value' => $account
-                )
+                    '@value' => $account,
+                ),
             )
         );
 
@@ -1044,10 +1046,10 @@ class ZimbraConnector
             array(
                 'domain' => array(
                     '@attributes' => array(
-                        'name' => $alias
+                        'name' => $alias,
                     ),
-                    'a' => $a
-                )
+                    'a' => $a,
+                ),
             )
         );
 
@@ -1107,9 +1109,9 @@ class ZimbraConnector
                 'folder' => array(
                     '@attributes' => array(
                         'l' => $parentFolderId,
-                        'name' => $folderName
-                    )
-                )
+                        'name' => $folderName,
+                    ),
+                ),
             ),
             true
         );
@@ -1136,9 +1138,9 @@ class ZimbraConnector
             array(
                 'cn' => array(
                     '@attributes' => array(
-                        'l' => $contactsFolderId
+                        'l' => $contactsFolderId,
                     ),
-                    'a' => $this->getAArray($attr)
+                    'a' => $this->getAArray($attr),
                 ),
             ),
             true
@@ -1161,11 +1163,11 @@ class ZimbraConnector
                     ),
                     'content' => array(
                         '@attributes' => array(
-                            'type' => $sigType
+                            'type' => $sigType,
                         ),
-                        '@value' => $sigContent
-                    )
-                )
+                        '@value' => $sigContent,
+                    ),
+                ),
             ),
             true,
             'Account'
@@ -1209,9 +1211,9 @@ class ZimbraConnector
             array(
                 'tag' => array(
                     '@attributes' => array(
-                        'name' => $tagName
-                    )
-                )
+                        'name' => $tagName,
+                    ),
+                ),
             ),
             true
         );
@@ -1232,9 +1234,9 @@ class ZimbraConnector
                         'op' => 'tag',
                         'id' => $contactId,
                         'by' => 'name',
-                        'tag' => $tagId
-                    )
-                )
+                        'tag' => $tagId,
+                    ),
+                ),
             ),
             true
         );
@@ -1248,10 +1250,10 @@ class ZimbraConnector
             array(
                 'dl' => array(
                     '@attributes' => array(
-                        'by' => 'name'
+                        'by' => 'name',
                     ),
-                    '@value' => $emailAddress
-                )
+                    '@value' => $emailAddress,
+                ),
             )
         );
 
@@ -1283,7 +1285,7 @@ class ZimbraConnector
             'SetPassword',
             array(
                 'newPassword' => $newPassword,
-                'id' => $accountId
+                'id' => $accountId,
             )
         );
     }
@@ -1313,7 +1315,7 @@ class ZimbraConnector
                         'name' => $name,
                     ),
                     'a' => $aArray,
-                )
+                ),
             ),
             true,
             'Account'
@@ -1328,10 +1330,10 @@ class ZimbraConnector
             array(
                 'account' => array(
                     '@attributes' => array(
-                        'by' => 'id'
+                        'by' => 'id',
                     ),
-                    '@value' => $accountId
-                )
+                    '@value' => $accountId,
+                ),
             )
         );
 
@@ -1418,17 +1420,56 @@ class ZimbraConnector
 
     public function modifyDistributionList($id, array $attributes)
     {
-        return $this->request('ModifyDistributionList', [], [
-            'id' => $id,
-            'a' => $this->getAArray($attributes)
-        ]);
+        return $this->request(
+            'ModifyDistributionList',
+            [],
+            [
+                'id' => $id,
+                'a' => $this->getAArray($attributes),
+            ]
+        );
     }
 
     public function renameDistributionList($id, $newName)
     {
-        return $this->request('RenameDistributionList', [
-            'id' => $id,
-            'newName' => $newName
-        ]);
+        return $this->request(
+            'RenameDistributionList',
+            [
+                'id' => $id,
+                'newName' => $newName,
+            ]
+        );
+    }
+
+    /**
+     * @param $name
+     * @param $password
+     * @param $displayName
+     * @param string $calendarResourceType
+     * @param array $otherAttributes
+     * @throws SoapFaultException
+     */
+    public function createCalendarResource(
+        $name,
+        $password,
+        $displayName,
+        $calendarResourceType = 'Location',
+        array $otherAttributes = []
+    ) {
+        return $this->request(
+            'CreateCalendarResource',
+            ['name' => $name, 'password' => $password],
+            [
+                'a' => $this->getAArray(
+                    array_merge(
+                        [
+                            'displayName' => $displayName,
+                            'zimbraCalResType' => $calendarResourceType,
+                        ],
+                        $otherAttributes
+                    )
+                ),
+            ]
+        );
     }
 }
