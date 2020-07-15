@@ -62,6 +62,20 @@ class CreateCalendarResourceTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+
+    /**
+     * @test
+     * @throws SoapFaultException
+     * @noinspection SpellCheckingInspection
+     */
+    public function acceptsAnyGivenPassword()
+    {
+        $this->connector->createCalendarResource(null, 'what.Ever1@', null);
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/CreateCalendarResourceRequest.*password="what\.Ever1@"/', $body) === 1;
+        }), m::any(), m::any(), m::any());
+    }
+
     protected function setUp()
     {
         parent::setUp();
