@@ -2,6 +2,7 @@
 
 namespace Connector;
 
+use Mockery as m;
 use Synaq\CurlBundle\Curl\Response;
 use Synaq\ZasaBundle\Connector\ZimbraConnector;
 use Synaq\ZasaBundle\Tests\Connector\ZimbraConnectorTestCase;
@@ -20,6 +21,17 @@ class CreateCalendarResourceTest extends ZimbraConnectorTestCase
     {
         $this->connector->createCalendarResource(null, null, null);
         $this->client->shouldHaveReceived('post')->once();
+    }
+
+    /**
+     * @test
+     */
+    public function sendsTheGivenNewNameAsAnAttribute()
+    {
+        $this->connector->createCalendarResource('foo@bar.com', null, null);
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/CreateCalendarResourceRequest.*name="foo@bar\.com"/', $body) === 1;
+        }), m::any(), m::any(), m::any());
     }
 
     protected function setUp()
