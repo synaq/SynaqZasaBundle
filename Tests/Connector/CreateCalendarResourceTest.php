@@ -65,7 +65,6 @@ class CreateCalendarResourceTest extends ZimbraConnectorTestCase
     /**
      * @test
      * @throws SoapFaultException
-     * @noinspection SpellCheckingInspection
      */
     public function acceptsAnyGivenPassword()
     {
@@ -78,7 +77,6 @@ class CreateCalendarResourceTest extends ZimbraConnectorTestCase
     /**
      * @test
      * @throws SoapFaultException
-     * @noinspection SpellCheckingInspection
      */
     public function sendsTheGivenDisplayNameAsAnEmbeddedAttribute()
     {
@@ -91,13 +89,24 @@ class CreateCalendarResourceTest extends ZimbraConnectorTestCase
     /**
      * @test
      * @throws SoapFaultException
-     * @noinspection SpellCheckingInspection
      */
-    public function accepsAnyGivenDisplayName()
+    public function acceptsAnyGivenDisplayName()
     {
         $this->connector->createCalendarResource(null, null, 'Any Old Resource');
         $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
             return preg_match('/<a n="displayName">Any Old Resource<\/a>/', $body) === 1;
+        }), m::any(), m::any(), m::any());
+    }
+
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function sendsTheGivenCalendarResourceTypeAsAnEmbeddedAttribute()
+    {
+        $this->connector->createCalendarResource(null, null, null, 'Location');
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/<a n="zimbraCalResType">Location<\/a>/', $body) === 1;
         }), m::any(), m::any(), m::any());
     }
 
