@@ -146,6 +146,16 @@ class CreateCalendarResourceTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function returnsResponseFromZimbra()
+    {
+        $response = $this->connector->createCalendarResource(null, null, null);
+        $this->assertEquals('some.resource@some.domain.com', $response['calresource']['@attributes']['name']);
+    }
+
     protected function setUp()
     {
         parent::setUp();
