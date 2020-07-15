@@ -334,12 +334,14 @@ class ZimbraConnector
     {
         $a = array();
         foreach ($attributes as $key => $value) {
-            $a[] = array(
-                '@attributes' => array(
-                    $n => $key,
-                ),
-                '@value' => (is_bool($value) ? ($value ? 'TRUE' : 'FALSE') : $value),
-            );
+            if (!is_null($value)) {
+                $a[] = array(
+                    '@attributes' => array(
+                        $n => $key,
+                    ),
+                    '@value' => (is_bool($value) ? ($value ? 'TRUE' : 'FALSE') : $value),
+                );
+            }
         }
 
         return $a;
@@ -1458,7 +1460,7 @@ class ZimbraConnector
             'CreateCalendarResource',
             ['name' => $name, 'password' => $password],
             ['a' => $this->getAArray([
-                'displayName' => 'Some Resource'
+                'displayName' => $displayName
             ])]
         );
     }

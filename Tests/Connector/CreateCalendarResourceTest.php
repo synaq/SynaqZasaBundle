@@ -88,6 +88,19 @@ class CreateCalendarResourceTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     * @throws SoapFaultException
+     * @noinspection SpellCheckingInspection
+     */
+    public function accepsAnyGivenDisplayName()
+    {
+        $this->connector->createCalendarResource(null, null, 'Any Old Resource');
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/<a n="displayName">Any Old Resource<\/a>/', $body) === 1;
+        }), m::any(), m::any(), m::any());
+    }
+
     protected function setUp()
     {
         parent::setUp();
