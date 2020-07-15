@@ -1461,11 +1461,13 @@ class ZimbraConnector
             ['name' => $name, 'password' => $password],
             [
                 'a' => $this->getAArray(
-                    [
-                        'displayName' => $displayName,
-                        'zimbraCalResType' => $calendarResourceType,
-                        'zimbraCalResAutoAcceptDecline' => true,
-                    ]
+                    array_merge(
+                        [
+                            'displayName' => $displayName,
+                            'zimbraCalResType' => $calendarResourceType,
+                        ],
+                        $otherAttributes
+                    )
                 ),
             ]
         );

@@ -126,11 +126,23 @@ class CreateCalendarResourceTest extends ZimbraConnectorTestCase
      * @test
      * @throws SoapFaultException
      */
-    public function 'sendsAnyOtherSuppliedAttributesAsEmbeddedAttributes'()
+    public function sendsAnyOtherSuppliedAttributesAsEmbeddedAttributes()
     {
         $this->connector->createCalendarResource(null, null, null, 'Location', ['zimbraCalResAutoAcceptDecline' => true]);
         $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
             return preg_match('/<a n="zimbraCalResAutoAcceptDecline">TRUE<\/a>/', $body) === 1;
+        }), m::any(), m::any(), m::any());
+    }
+
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function acceptsAnyOtherAttributes()
+    {
+        $this->connector->createCalendarResource(null, null, null, 'Location', ['zimbraCalResAutoDeclineIfBusy' => false]);
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/<a n="zimbraCalResAutoDeclineIfBusy">FALSE<\/a>/', $body) === 1;
         }), m::any(), m::any(), m::any());
     }
 
