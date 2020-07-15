@@ -1459,10 +1459,15 @@ class ZimbraConnector
         $this->request(
             'CreateCalendarResource',
             ['name' => $name, 'password' => $password],
-            ['a' => $this->getAArray([
-                'displayName' => $displayName,
-                'zimbraCalResType' => $calendarResourceType
-            ])]
+            [
+                'a' => $this->getAArray(
+                    [
+                        'displayName' => $displayName,
+                        'zimbraCalResType' => $calendarResourceType,
+                        'zimbraCalResAutoAcceptDecline' => true,
+                    ]
+                ),
+            ]
         );
     }
 }
