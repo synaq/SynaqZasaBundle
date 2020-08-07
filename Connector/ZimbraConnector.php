@@ -1492,11 +1492,12 @@ class ZimbraConnector
 
     /**
      * @param $name string Name (email address) of calendar resource to retrieve
+     * @return mixed
      * @throws SoapFaultException
      */
     public function getCalendarResource($name)
     {
-        $this->request(
+        $response = $this->request(
             'GetCalendarResource',
             [],
             [
@@ -1509,6 +1510,12 @@ class ZimbraConnector
             ]
         );
 
-        return ['id' => 'SOME-UNIQUE-ZIMBRA-ID'];
+        $resource = array();
+        $resource['id'] = $response['calresource']['@attributes']['id'];
+        foreach ($response['calresource']['a'] as $a) {
+            $resource[$a['@attributes']['n']] = $a['@value'];
+        }
+
+        return $resource;
     }
 }
