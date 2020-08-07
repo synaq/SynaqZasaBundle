@@ -2,6 +2,8 @@
 
 namespace Synaq\ZasaBundle\Util;
 
+use Exception;
+
 /**
  * XML2Array: A class to convert XML to array in PHP
  * It returns the array which can be converted back to XML using the Array2XML script
@@ -41,19 +43,19 @@ class Xml2Array {
     /**
      * Convert an XML to Array
      * @param string $input_xml
-     * @return \DOMDocument
-     * @throws \Exception
+     * @return array
+     * @throws Exception
      */
     public static function &createArray($input_xml) {
         $xml = self::getXMLRoot();
         if(is_string($input_xml)) {
             $parsed = $xml->loadXML($input_xml);
             if(!$parsed) {
-                throw new \Exception('[XML2Array] Error parsing the XML string.');
+                throw new Exception('[XML2Array] Error parsing the XML string.');
             }
         } else {
             if(get_class($input_xml) != 'DOMDocument') {
-                throw new \Exception('[XML2Array] The input XML object should be of type: DOMDocument.');
+                throw new Exception('[XML2Array] The input XML object should be of type: DOMDocument.');
             }
             $xml = self::$xml = $input_xml;
         }

@@ -2,6 +2,7 @@
 
 namespace Synaq\ZasaBundle\Connector;
 
+use InvalidArgumentException;
 use \Synaq\ZasaBundle\Exception\DelegatedAuthDeniedException;
 use Synaq\CurlBundle\Curl\Wrapper;
 use Synaq\ZasaBundle\Exception\MissingConfigurationException;
@@ -87,6 +88,16 @@ class ZimbraConnector
         }
     }
 
+    /**
+     * @param $requestType
+     * @param array $attributes
+     * @param array $parameters
+     * @param false $delegate
+     * @param string $delegateType
+     * @param bool $retryOnExpiredAuth
+     * @return mixed
+     * @throws SoapFaultException
+     */
     private function request(
         $requestType,
         $attributes = array(),
@@ -131,6 +142,12 @@ class ZimbraConnector
         return $requestAsXml;
     }
 
+    /**
+     * @param $request
+     * @return array
+     * @throws SoapFaultException
+     * @throws \Exception
+     */
     private function submitRequest($request)
     {
         $response = $this->httpClient->post(
@@ -1095,7 +1112,7 @@ class ZimbraConnector
     {
         if (strpos($folderName, '/') > -1) {
 
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 "Invalid folder name, $folderName, folder names cannot contain forward slash charaters. You must provide the parent folder ID to create a subfolder."
             );
         }
@@ -1471,5 +1488,14 @@ class ZimbraConnector
                 ),
             ]
         );
+    }
+
+    /**
+     * @param $name string Name (email address) of calendar resource to retrieve
+     * @throws SoapFaultException
+     */
+    public function getCalendarResource($name)
+    {
+        $this->request('GetCalendarResource');
     }
 }
