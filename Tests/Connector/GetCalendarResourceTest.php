@@ -21,7 +21,7 @@ class GetCalendarResourceTest extends ZimbraConnectorTestCase
      */
     public function sendsOnePostRequestToZimbra()
     {
-        $this->connector->getCalendarResource(null);
+        $this->connector->getCalendarResource('whatever@wherever.com');
         $this->client->shouldHaveReceived('post')->once();
     }
 
@@ -35,6 +35,18 @@ class GetCalendarResourceTest extends ZimbraConnectorTestCase
         $this->connector->getCalendarResource('foo@bar.com');
         $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
             return preg_match('/<calresource by="name">foo@bar\.com<\/calresource>/', $body) === 1;
+        }), m::any(), m::any(), m::any());
+    }
+
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function acceptsAnyGivenName()
+    {
+        $this->connector->getCalendarResource('bar@baz.net');
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/<calresource by="name">bar@baz.net<\/calresource>/', $body) === 1;
         }), m::any(), m::any(), m::any());
     }
 

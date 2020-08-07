@@ -1504,7 +1504,7 @@ class ZimbraConnector
                     '@attributes' => [
                         'by' => 'name',
                     ],
-                    '@value' => 'foo@bar.com',
+                    '@value' => $name,
                 ],
             ]
         );
