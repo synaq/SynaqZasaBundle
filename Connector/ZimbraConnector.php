@@ -1518,4 +1518,13 @@ class ZimbraConnector
 
         return $resource;
     }
+
+    /**
+     * @param $id
+     * @throws SoapFaultException
+     */
+    public function deleteCalendarResource($id)
+    {
+        $this->request('DeleteCalendarResource', ['id' => $id]);
+    }
 }
