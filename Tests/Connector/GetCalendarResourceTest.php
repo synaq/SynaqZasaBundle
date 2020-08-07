@@ -2,6 +2,7 @@
 
 namespace Connector;
 
+use Mockery as m;
 use Synaq\CurlBundle\Curl\Response;
 use Synaq\ZasaBundle\Connector\ZimbraConnector;
 use Synaq\ZasaBundle\Exception\SoapFaultException;
@@ -22,6 +23,19 @@ class GetCalendarResourceTest extends ZimbraConnectorTestCase
     {
         $this->connector->getCalendarResource(null);
         $this->client->shouldHaveReceived('post')->once();
+    }
+
+
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function sendsTheGivenNameAsTheNameParameterOfTheResourceInTheRequest()
+    {
+        $this->connector->getCalendarResource('foo@bar.com');
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/<calresource by="name">foo@bar\.com<\/calresource>/', $body) === 1;
+        }), m::any(), m::any(), m::any());
     }
 
     protected function setUp()

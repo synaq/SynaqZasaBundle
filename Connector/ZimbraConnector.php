@@ -1496,6 +1496,17 @@ class ZimbraConnector
      */
     public function getCalendarResource($name)
     {
-        $this->request('GetCalendarResource');
+        $this->request(
+            'GetCalendarResource',
+            [],
+            [
+                'calresource' => [
+                    '@attributes' => [
+                        'by' => 'name',
+                    ],
+                    '@value' => 'foo@bar.com',
+                ],
+            ]
+        );
     }
 }
