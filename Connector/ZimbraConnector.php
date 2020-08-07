@@ -1508,5 +1508,7 @@ class ZimbraConnector
                 ],
             ]
         );
+
+        return ['id' => 'SOME-UNIQUE-ZIMBRA-ID'];
     }
 }

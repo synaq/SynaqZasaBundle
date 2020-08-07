@@ -50,6 +50,16 @@ class GetCalendarResourceTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function returnsTheResultFromZimbraAsAnAssociativeArray()
+    {
+        $resource = $this->connector->getCalendarResource('bar@baz.net');
+        $this->assertEquals('SOME-UNIQUE-ZIMBRA-ID', $resource['id']);
+    }
+
     protected function setUp()
     {
         parent::setUp();
