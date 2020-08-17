@@ -1535,6 +1535,6 @@ class ZimbraConnector
      */
     public function modifyCalendarRequest($id, array $attributes)
     {
-        $this->request('ModifyCalendarResource', [], ['id' => 'SOME-ID']);
+        $this->request('ModifyCalendarResource', [], ['id' => $id]);
     }
 }
