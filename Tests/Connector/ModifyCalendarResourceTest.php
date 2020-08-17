@@ -49,6 +49,18 @@ class ModifyCalendarResourceTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function passesGivenAttributesInTheRequest()
+    {
+        $this->connector->modifyCalendarRequest('WHAT-EVER', ['zimbraCalResType' => 'Location']);
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/<a n="zimbraCalResType">Location<\/a>/', $body) === 1;
+        }), m::any(), m::any(), m::any());
+    }
+
     protected function setUp()
     {
         parent::setUp();
