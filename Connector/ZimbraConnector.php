@@ -1538,7 +1538,7 @@ class ZimbraConnector
         $this->request(
             'ModifyCalendarResource',
             [],
-            ['id' => $id, 'a' => $this->getAArray(['zimbraCalResType' => 'Location'])]
+            ['id' => $id, 'a' => $this->getAArray($attributes)]
         );
     }
 }
