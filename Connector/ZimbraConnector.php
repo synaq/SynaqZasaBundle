@@ -1533,9 +1533,9 @@ class ZimbraConnector
      * @param array $attributes
      * @throws SoapFaultException
      */
-    public function modifyCalendarRequest($id, array $attributes)
+    public function modifyCalendarResource($id, array $attributes)
     {
-        $this->request(
+        return $this->request(
             'ModifyCalendarResource',
             [],
             ['id' => $id, 'a' => $this->getAArray($attributes)]

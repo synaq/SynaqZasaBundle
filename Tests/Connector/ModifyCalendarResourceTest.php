@@ -21,7 +21,7 @@ class ModifyCalendarResourceTest extends ZimbraConnectorTestCase
      */
     public function sendsOnePostRequestToZimbra()
     {
-        $this->connector->modifyCalendarRequest('WHAT-EVER', []);
+        $this->connector->modifyCalendarResource('WHAT-EVER', []);
         $this->client->shouldHaveReceived('post')->once();
     }
 
@@ -31,7 +31,7 @@ class ModifyCalendarResourceTest extends ZimbraConnectorTestCase
      */
     public function sendsTheGivenIdForTheModifyRequest()
     {
-        $this->connector->modifyCalendarRequest('SOME-ID', []);
+        $this->connector->modifyCalendarResource('SOME-ID', []);
         $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
             return preg_match('/<id>SOME-ID<\/id>/', $body) === 1;
         }), m::any(), m::any(), m::any());
@@ -43,7 +43,7 @@ class ModifyCalendarResourceTest extends ZimbraConnectorTestCase
      */
     public function acceptsAnyId()
     {
-        $this->connector->modifyCalendarRequest('ANY-ID', []);
+        $this->connector->modifyCalendarResource('ANY-ID', []);
         $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
             return preg_match('/<id>ANY-ID<\/id>/', $body) === 1;
         }), m::any(), m::any(), m::any());
@@ -55,7 +55,7 @@ class ModifyCalendarResourceTest extends ZimbraConnectorTestCase
      */
     public function passesGivenAttributesInTheRequest()
     {
-        $this->connector->modifyCalendarRequest('WHAT-EVER', ['zimbraCalResType' => 'Location']);
+        $this->connector->modifyCalendarResource('WHAT-EVER', ['zimbraCalResType' => 'Location']);
         $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
             return preg_match('/<a n="zimbraCalResType">Location<\/a>/', $body) === 1;
         }), m::any(), m::any(), m::any());
@@ -67,10 +67,20 @@ class ModifyCalendarResourceTest extends ZimbraConnectorTestCase
      */
     public function acceptsAnyGivenAttributes()
     {
-        $this->connector->modifyCalendarRequest('WHAT-EVER', ['displayName' => 'Foo Bar']);
+        $this->connector->modifyCalendarResource('WHAT-EVER', ['displayName' => 'Foo Bar']);
         $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
             return preg_match('/<a n="displayName">Foo Bar<\/a>/', $body) === 1;
         }), m::any(), m::any(), m::any());
+    }
+
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function returnsResponseFromZimbra()
+    {
+        $response = $this->connector->modifyCalendarResource('WHAT-EVER', []);
+        $this->assertEquals('foo@bar.com', $response['calresource']['@attributes']['name']);
     }
 
     protected function setUp()
