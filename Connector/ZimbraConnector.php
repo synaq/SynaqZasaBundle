@@ -1528,8 +1528,13 @@ class ZimbraConnector
         $this->request('DeleteCalendarResource', ['id' => $id]);
     }
 
+    /**
+     * @param $id
+     * @param array $attributes
+     * @throws SoapFaultException
+     */
     public function modifyCalendarRequest($id, array $attributes)
     {
-        $this->request('ModifyCalendarResource');
+        $this->request('ModifyCalendarResource', [], ['id' => 'SOME-ID']);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Connector;
 
+use Mockery as m;
 use Synaq\CurlBundle\Curl\Response;
 use Synaq\ZasaBundle\Connector\ZimbraConnector;
 use Synaq\ZasaBundle\Exception\SoapFaultException;
@@ -16,11 +17,24 @@ class ModifyCalendarResourceTest extends ZimbraConnectorTestCase
 
     /**
      * @test
+     * @throws SoapFaultException
      */
     public function sendsOnePostRequestToZimbra()
     {
         $this->connector->modifyCalendarRequest('WHAT-EVER', []);
         $this->client->shouldHaveReceived('post')->once();
+    }
+
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function sendsTheGivenIdForTheModifyRequest()
+    {
+        $this->connector->modifyCalendarRequest('SOME-ID', []);
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/<id>SOME-ID<\/id>/', $body) === 1;
+        }), m::any(), m::any(), m::any());
     }
 
     protected function setUp()
