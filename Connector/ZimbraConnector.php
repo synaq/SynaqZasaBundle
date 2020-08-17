@@ -1527,4 +1527,9 @@ class ZimbraConnector
     {
         $this->request('DeleteCalendarResource', ['id' => $id]);
     }
+
+    public function modifyCalendarRequest($id, array $attributes)
+    {
+        $this->request('ModifyCalendarResource');
+    }
 }
