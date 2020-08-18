@@ -1541,4 +1541,14 @@ class ZimbraConnector
             ['id' => $id, 'a' => $this->getAArray($attributes)]
         );
     }
+
+    /**
+     * @param $id
+     * @param $newName
+     * @throws SoapFaultException
+     */
+    public function renameCalendarResource($id, $newName)
+    {
+        $this->request('RenameCalendarResource');
+    }
 }
