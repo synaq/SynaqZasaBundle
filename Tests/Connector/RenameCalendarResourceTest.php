@@ -2,6 +2,7 @@
 
 namespace Connector;
 
+use Mockery as m;
 use Synaq\CurlBundle\Curl\Response;
 use Synaq\ZasaBundle\Connector\ZimbraConnector;
 use Synaq\ZasaBundle\Exception\SoapFaultException;
@@ -22,6 +23,19 @@ class RenameCalendarResourceTest extends ZimbraConnectorTestCase
     {
         $this->connector->renameCalendarResource('WHAT-EVER', 'foo@foo.com');
         $this->client->shouldHaveReceived('post')->once();
+    }
+
+
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function renamesForTheGivenId()
+    {
+        $this->connector->renameCalendarResource('SOME-ID', 'foo@foo.com');
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/RenameCalendarResourceRequest.*id="SOME-ID"/', $body) === 1;
+        }), m::any(), m::any(), m::any());
     }
 
     protected function setUp()

@@ -1549,6 +1549,6 @@ class ZimbraConnector
      */
     public function renameCalendarResource($id, $newName)
     {
-        $this->request('RenameCalendarResource');
+        $this->request('RenameCalendarResource', ['id' => 'SOME-ID']);
     }
 }
