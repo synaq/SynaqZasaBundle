@@ -50,6 +50,18 @@ class RenameCalendarResourceTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function sendsTheGivenNewName()
+    {
+        $this->connector->renameCalendarResource('WHAT-EVER', 'foo@bar.com');
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/RenameCalendarResourceRequest.*newName="foo@bar.com"/', $body) === 1;
+        }), m::any(), m::any(), m::any());
+    }
+
     protected function setUp()
     {
         parent::setUp();
