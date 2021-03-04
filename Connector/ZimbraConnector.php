@@ -1551,4 +1551,9 @@ class ZimbraConnector
     {
         return $this->request('RenameCalendarResource', ['id' => $id, 'newName' => $newName]);
     }
+
+    public function createArchive($accountId, $archiveName, $cosId)
+    {
+        $this->request('CreateArchive');
+    }
 }
