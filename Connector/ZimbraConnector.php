@@ -1578,7 +1578,7 @@ class ZimbraConnector
                         '@attributes' => [
                             'by' => 'id'
                         ],
-                        '@value' => 'SOME-COS-ID'
+                        '@value' => $cosId
                     ]
                 ]
             ]

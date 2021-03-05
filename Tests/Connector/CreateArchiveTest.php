@@ -85,6 +85,18 @@ class CreateArchiveTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function acceptsAnyCosId()
+    {
+        $this->connector->createArchive('ID', 'any@any.com.archive', 'ANY-COS-ID');
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/<CreateArchiveRequest.*>.*<archive>.*<cos by="id">ANY-COS-ID<\\/cos>.*<\\/archive>.*<\\/CreateArchiveRequest>/s', $body) === 1;
+        }), m::any(), m::any(), m::any());
+    }
+
     protected function setUp()
     {
         parent::setUp();
