@@ -55,7 +55,7 @@ class CreateArchiveTest extends ZimbraConnectorTestCase
      */
     public function sendsTheGivenArchiveName()
     {
-        $this->connector->createArchive('ID', 'some.user@some.domain.com.archive', null);
+        $this->connector->createArchive('ID', 'some.user@some.domain.com.archive', 'COS-ID');
         $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
             return preg_match('/<CreateArchiveRequest.*>.*<archive>.*<name>some\\.user@some\\.domain\\.com\\.archive<\\/name>.*<\\/archive>.*<\\/CreateArchiveRequest>/s', $body) === 1;
         }), m::any(), m::any(), m::any());
@@ -67,9 +67,21 @@ class CreateArchiveTest extends ZimbraConnectorTestCase
      */
     public function acceptsAnyArchiveName()
     {
-        $this->connector->createArchive('ID', 'anybody@any.domain.com.archive', null);
+        $this->connector->createArchive('ID', 'anybody@any.domain.com.archive', 'COS-ID');
         $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
             return preg_match('/<CreateArchiveRequest.*>.*<archive>.*<name>anybody@any\\.domain\\.com\\.archive<\\/name>.*<\\/archive>.*<\\/CreateArchiveRequest>/s', $body) === 1;
+        }), m::any(), m::any(), m::any());
+    }
+
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function sendsTheGivenCosId()
+    {
+        $this->connector->createArchive('ID', 'any@any.com.archive', 'SOME-COS-ID');
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/<CreateArchiveRequest.*>.*<archive>.*<cos by="id">SOME-COS-ID<\\/cos>.*<\\/archive>.*<\\/CreateArchiveRequest>/s', $body) === 1;
         }), m::any(), m::any(), m::any());
     }
 

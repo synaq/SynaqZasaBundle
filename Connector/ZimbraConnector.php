@@ -1573,6 +1573,12 @@ class ZimbraConnector
                 'archive' => [
                     'name' => [
                         '@value' => $archiveName
+                    ],
+                    'cos' => [
+                        '@attributes' => [
+                            'by' => 'id'
+                        ],
+                        '@value' => 'SOME-COS-ID'
                     ]
                 ]
             ]
