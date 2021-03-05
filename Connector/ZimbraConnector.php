@@ -1554,6 +1554,17 @@ class ZimbraConnector
 
     public function createArchive($accountId, $archiveName, $cosId)
     {
-        $this->request('CreateArchive');
+        $this->request(
+            'CreateArchive',
+            [],
+            [
+                'account' => array(
+                    '@attributes' => array(
+                        'by' => 'id',
+                    ),
+                    '@value' => 'SOME-ID',
+                ),
+            ]
+        );
     }
 }

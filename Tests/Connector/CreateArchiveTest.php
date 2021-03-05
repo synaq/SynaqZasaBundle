@@ -2,10 +2,9 @@
 
 namespace Connector;
 
+use Mockery as m;
 use Synaq\CurlBundle\Curl\Response;
 use Synaq\ZasaBundle\Connector\ZimbraConnector;
-use PHPUnit\Framework\TestCase;
-use Synaq\ZasaBundle\Exception\SoapFaultException;
 use Synaq\ZasaBundle\Tests\Connector\ZimbraConnectorTestCase;
 
 class CreateArchiveTest extends ZimbraConnectorTestCase
@@ -22,6 +21,17 @@ class CreateArchiveTest extends ZimbraConnectorTestCase
     {
         $this->connector->createArchive(null, null, null);
         $this->client->shouldHaveReceived('post')->once();
+    }
+
+    /**
+     * @test
+     */
+    public function sendsTheGivenAccountId()
+    {
+        $this->connector->createArchive('SOME-ID', null, null);
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/<CreateArchiveRequest.*>.*<account by="id">SOME-ID<\\/account>.*<\\/CreateArchiveRequest>/s', $body) === 1;
+        }), m::any(), m::any(), m::any());
     }
 
     protected function setUp()
