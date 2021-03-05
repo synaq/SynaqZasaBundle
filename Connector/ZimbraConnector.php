@@ -1552,18 +1552,29 @@ class ZimbraConnector
         return $this->request('RenameCalendarResource', ['id' => $id, 'newName' => $newName]);
     }
 
+    /**
+     * @param $accountId
+     * @param $archiveName
+     * @param $cosId
+     * @throws SoapFaultException
+     */
     public function createArchive($accountId, $archiveName, $cosId)
     {
         $this->request(
             'CreateArchive',
             [],
             [
-                'account' => array(
-                    '@attributes' => array(
+                'account' => [
+                    '@attributes' => [
                         'by' => 'id',
-                    ),
+                    ],
                     '@value' => $accountId,
-                ),
+                ],
+                'archive' => [
+                    'name' => [
+                        '@value' => 'some.user@some.domain.com.archive'
+                    ]
+                ]
             ]
         );
     }

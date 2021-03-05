@@ -5,6 +5,7 @@ namespace Connector;
 use Mockery as m;
 use Synaq\CurlBundle\Curl\Response;
 use Synaq\ZasaBundle\Connector\ZimbraConnector;
+use Synaq\ZasaBundle\Exception\SoapFaultException;
 use Synaq\ZasaBundle\Tests\Connector\ZimbraConnectorTestCase;
 
 class CreateArchiveTest extends ZimbraConnectorTestCase
@@ -16,33 +17,47 @@ class CreateArchiveTest extends ZimbraConnectorTestCase
 
     /**
      * @test
+     * @throws SoapFaultException
      */
     public function sendsOnePostRequestToZimbra()
     {
-        $this->connector->createArchive('ID', null, null);
+        $this->connector->createArchive('ID', 'any@any.com.archive', 'COS-ID');
         $this->client->shouldHaveReceived('post')->once();
     }
 
     /**
      * @test
+     * @throws SoapFaultException
      */
     public function sendsTheGivenAccountId()
     {
-        $this->connector->createArchive('SOME-ID', null, null);
+        $this->connector->createArchive('SOME-ID', 'any@any.com.archive', 'COS-ID');
         $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
             return preg_match('/<CreateArchiveRequest.*>.*<account by="id">SOME-ID<\\/account>.*<\\/CreateArchiveRequest>/s', $body) === 1;
         }), m::any(), m::any(), m::any());
     }
 
-
     /**
      * @test
+     * @throws SoapFaultException
      */
     public function acceptsAnyAccountId()
     {
-        $this->connector->createArchive('ANY-ID', null, null);
+        $this->connector->createArchive('ANY-ID', 'any@any.com.archive', 'COS-ID');
         $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
             return preg_match('/<CreateArchiveRequest.*>.*<account by="id">ANY-ID<\\/account>.*<\\/CreateArchiveRequest>/s', $body) === 1;
+        }), m::any(), m::any(), m::any());
+    }
+
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function sendsTheGivenArchiveName()
+    {
+        $this->connector->createArchive('ID', 'some.user@some.domain.com.archive', null);
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/<CreateArchiveRequest.*>.*<archive>.*<name>some.user@some.domain.com.archive<\\/name>.*<\\/archive>.*<\\/CreateArchiveRequest>/s', $body) === 1;
         }), m::any(), m::any(), m::any());
     }
 
