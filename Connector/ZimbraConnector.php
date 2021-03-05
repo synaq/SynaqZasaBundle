@@ -1572,7 +1572,7 @@ class ZimbraConnector
                 ],
                 'archive' => [
                     'name' => [
-                        '@value' => 'some.user@some.domain.com.archive'
+                        '@value' => $archiveName
                     ]
                 ]
             ]

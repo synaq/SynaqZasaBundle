@@ -57,7 +57,19 @@ class CreateArchiveTest extends ZimbraConnectorTestCase
     {
         $this->connector->createArchive('ID', 'some.user@some.domain.com.archive', null);
         $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
-            return preg_match('/<CreateArchiveRequest.*>.*<archive>.*<name>some.user@some.domain.com.archive<\\/name>.*<\\/archive>.*<\\/CreateArchiveRequest>/s', $body) === 1;
+            return preg_match('/<CreateArchiveRequest.*>.*<archive>.*<name>some\\.user@some\\.domain\\.com\\.archive<\\/name>.*<\\/archive>.*<\\/CreateArchiveRequest>/s', $body) === 1;
+        }), m::any(), m::any(), m::any());
+    }
+
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function acceptsAnyArchiveName()
+    {
+        $this->connector->createArchive('ID', 'anybody@any.domain.com.archive', null);
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/<CreateArchiveRequest.*>.*<archive>.*<name>anybody@any\\.domain\\.com\\.archive<\\/name>.*<\\/archive>.*<\\/CreateArchiveRequest>/s', $body) === 1;
         }), m::any(), m::any(), m::any());
     }
 
