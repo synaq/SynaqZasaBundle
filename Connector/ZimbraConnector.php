@@ -1562,7 +1562,7 @@ class ZimbraConnector
                     '@attributes' => array(
                         'by' => 'id',
                     ),
-                    '@value' => 'SOME-ID',
+                    '@value' => $accountId,
                 ),
             ]
         );

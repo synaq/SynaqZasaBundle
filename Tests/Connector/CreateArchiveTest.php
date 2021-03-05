@@ -19,7 +19,7 @@ class CreateArchiveTest extends ZimbraConnectorTestCase
      */
     public function sendsOnePostRequestToZimbra()
     {
-        $this->connector->createArchive(null, null, null);
+        $this->connector->createArchive('ID', null, null);
         $this->client->shouldHaveReceived('post')->once();
     }
 
@@ -31,6 +31,18 @@ class CreateArchiveTest extends ZimbraConnectorTestCase
         $this->connector->createArchive('SOME-ID', null, null);
         $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
             return preg_match('/<CreateArchiveRequest.*>.*<account by="id">SOME-ID<\\/account>.*<\\/CreateArchiveRequest>/s', $body) === 1;
+        }), m::any(), m::any(), m::any());
+    }
+
+
+    /**
+     * @test
+     */
+    public function acceptsAnyAccountId()
+    {
+        $this->connector->createArchive('ANY-ID', null, null);
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/<CreateArchiveRequest.*>.*<account by="id">ANY-ID<\\/account>.*<\\/CreateArchiveRequest>/s', $body) === 1;
         }), m::any(), m::any(), m::any());
     }
 
