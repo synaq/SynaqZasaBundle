@@ -10,7 +10,7 @@ use Synaq\ZasaBundle\Tests\Connector\ZimbraConnectorTestCase;
 class DeleteMountPointTest extends ZimbraConnectorTestCase
 {
     /**
-     * @var ZimbraConnector
+     * @var ZimbraConnector | m\Mock
      */
     private $connector;
 
@@ -19,13 +19,19 @@ class DeleteMountPointTest extends ZimbraConnectorTestCase
      */
     public function delegatesAuthenticationOnce()
     {
-        $this->connector = m::mock(
-            'Synaq\ZasaBundle\Connector\ZimbraConnector[delegateAuth]',
-            [$this->client, null, null, null, true, __DIR__.'/Fixtures/token']
-        );
-        $this->connector->shouldIgnoreMissing();
+        $this->patriallyMockConnectorToTestDelegatedAuth();
         $this->connector->deleteMountPoint('foo@bar.com', 42);
         $this->connector->shouldHaveReceived('delegateAuth')->once();
+    }
+
+    /**
+     * @test
+     */
+    public function delegatesForTheGivenAccountName()
+    {
+        $this->patriallyMockConnectorToTestDelegatedAuth();
+        $this->connector->deleteMountPoint('foo@bar.com', 42);
+        $this->connector->shouldHaveReceived('delegateAuth')->with('foo@bar.com');
     }
 
     protected function setUp()
@@ -42,5 +48,14 @@ class DeleteMountPointTest extends ZimbraConnectorTestCase
                     </FolderActionResponse>';
 
         return new Response($this->httpOkHeaders.$this->soapHeaders.$message.$this->soapFooters);
+    }
+
+    private function patriallyMockConnectorToTestDelegatedAuth()
+    {
+        $this->connector = m::mock(
+            'Synaq\ZasaBundle\Connector\ZimbraConnector[delegateAuth]',
+            [$this->client, null, null, null, true, __DIR__.'/Fixtures/token']
+        );
+        $this->connector->shouldIgnoreMissing();
     }
 }
