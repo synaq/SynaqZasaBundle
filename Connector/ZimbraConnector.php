@@ -1585,8 +1585,27 @@ class ZimbraConnector
         );
     }
 
+    /**
+     * @param $accountName
+     * @param $folderId
+     * @throws SoapFaultException
+     */
     public function deleteMountPoint($accountName, $folderId)
     {
         $this->delegateAuth($accountName);
+
+        $this->request(
+            'FolderAction',
+            [],
+            [
+                'action' => [
+                    '@attributes' => [
+                        'op' => 'delete',
+                        'id' => 42,
+                    ]
+                ],
+            ],
+            true
+        );
     }
 }
