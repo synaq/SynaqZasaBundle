@@ -34,6 +34,16 @@ class DeleteMountPointTest extends ZimbraConnectorTestCase
         $this->connector->shouldHaveReceived('delegateAuth')->with('foo@bar.com');
     }
 
+    /**
+     * @test
+     */
+    public function acceptsAnyAccountName()
+    {
+        $this->patriallyMockConnectorToTestDelegatedAuth();
+        $this->connector->deleteMountPoint('bar@bar.com', 42);
+        $this->connector->shouldHaveReceived('delegateAuth')->with('bar@bar.com');
+    }
+
     protected function setUp()
     {
         parent::setUp();

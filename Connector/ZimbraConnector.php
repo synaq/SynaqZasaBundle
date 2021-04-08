@@ -1587,6 +1587,6 @@ class ZimbraConnector
 
     public function deleteMountPoint($accountName, $folderId)
     {
-        $this->delegateAuth('foo@bar.com');
+        $this->delegateAuth($accountName);
     }
 }
