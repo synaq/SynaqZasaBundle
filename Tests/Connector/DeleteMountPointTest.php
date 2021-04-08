@@ -57,6 +57,18 @@ class DeleteMountPointTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function acceptsAnyFolderId()
+    {
+        $this->connector->deleteMountPoint('foo@bar.com', 123);
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/<FolderActionRequest.*>.*<action op="delete" id="123".*\\/>.*<\\/FolderActionRequest>/s', $body) === 1;
+        }), m::any(), m::any(), m::any());
+    }
+
     protected function setUp()
     {
         parent::setUp();

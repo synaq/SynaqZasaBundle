@@ -1601,7 +1601,7 @@ class ZimbraConnector
                 'action' => [
                     '@attributes' => [
                         'op' => 'delete',
-                        'id' => 42,
+                        'id' => $folderId,
                     ]
                 ],
             ],
