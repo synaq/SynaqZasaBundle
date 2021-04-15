@@ -19,8 +19,17 @@ class GetFilterRulesTest extends ZimbraConnectorTestCase
      */
     public function delegatesAuthenticationOnce()
     {
-        $this->connector->getFilterRules('foo@bar.com');
+        $this->connector->getFilterRules(null);
         $this->connector->shouldHaveReceived('delegateAuth')->once();
+    }
+
+    /**
+     * @test
+     */
+    public function delegatesAuthenticationForTheGivenAccountName()
+    {
+        $this->connector->getFilterRules('foo@bar.com');
+        $this->connector->shouldHaveReceived('delegateAuth')->with('foo@bar.com');
     }
 
     protected function setUp()
