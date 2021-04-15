@@ -1608,4 +1608,9 @@ class ZimbraConnector
             true
         );
     }
+
+    public function getFilterRules($accountName)
+    {
+        $this->delegateAuth(null);
+    }
 }
