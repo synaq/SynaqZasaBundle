@@ -1609,8 +1609,18 @@ class ZimbraConnector
         );
     }
 
+    /**
+     * @throws SoapFaultException
+     */
     public function getFilterRules($accountName)
     {
         $this->delegateAuth($accountName);
+
+        $this->request(
+            'GetFilterRules',
+            [],
+            [],
+            true
+        );
     }
 }
