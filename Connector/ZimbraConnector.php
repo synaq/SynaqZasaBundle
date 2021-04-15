@@ -1611,6 +1611,6 @@ class ZimbraConnector
 
     public function getFilterRules($accountName)
     {
-        $this->delegateAuth('foo@bar.com');
+        $this->delegateAuth($accountName);
     }
 }

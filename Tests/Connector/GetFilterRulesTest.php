@@ -32,6 +32,15 @@ class GetFilterRulesTest extends ZimbraConnectorTestCase
         $this->connector->shouldHaveReceived('delegateAuth')->with('foo@bar.com');
     }
 
+    /**
+     * @test
+     */
+    public function acceptsAnyAccountName()
+    {
+        $this->connector->getFilterRules('bar@bar.com');
+        $this->connector->shouldHaveReceived('delegateAuth')->with('bar@bar.com');
+    }
+
     protected function setUp()
     {
         parent::setUp();
