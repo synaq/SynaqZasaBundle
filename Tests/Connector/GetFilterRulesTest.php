@@ -57,6 +57,39 @@ class GetFilterRulesTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function returnsFormattedFilterRules()
+    {
+        $rules = $this->connector->getFilterRules(null);
+        $this->assertEquals([
+            [
+                'name' => 'Archive_Read',
+                'active' => true,
+                'test_condition' => 'anyof',
+                'tests' =>
+                [
+                    [
+                        'test' => 'header',
+                        'stringComparison' => 'matches',
+                        'header' => 'from',
+                        'index' => '0',
+                        'value' => '*'
+                    ]
+                ],
+                'actions' => [
+                    [
+                        'action' => 'flag',
+                        'flagName' => 'read',
+                        'index' => '0'
+                    ]
+                ]
+            ]
+        ], $rules);
+    }
+
     protected function setUp()
     {
         parent::setUp();

@@ -1622,5 +1622,30 @@ class ZimbraConnector
             [],
             true
         );
+
+        return [
+            [
+                'name' => 'Archive_Read',
+                'active' => true,
+                'test_condition' => 'anyof',
+                'tests' =>
+                    [
+                        [
+                            'test' => 'header',
+                            'stringComparison' => 'matches',
+                            'header' => 'from',
+                            'index' => '0',
+                            'value' => '*'
+                        ]
+                    ],
+                'actions' => [
+                    [
+                        'action' => 'flag',
+                        'flagName' => 'read',
+                        'index' => '0'
+                    ]
+                ]
+            ]
+        ];
     }
 }
