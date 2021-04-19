@@ -1572,15 +1572,15 @@ class ZimbraConnector
                 ],
                 'archive' => [
                     'name' => [
-                        '@value' => $archiveName
+                        '@value' => $archiveName,
                     ],
                     'cos' => [
                         '@attributes' => [
-                            'by' => 'id'
+                            'by' => 'id',
                         ],
-                        '@value' => $cosId
-                    ]
-                ]
+                        '@value' => $cosId,
+                    ],
+                ],
             ]
         );
     }
@@ -1602,10 +1602,70 @@ class ZimbraConnector
                     '@attributes' => [
                         'op' => 'delete',
                         'id' => $folderId,
-                    ]
+                    ],
                 ],
             ],
             true
         );
+    }
+
+    /**
+     * @throws SoapFaultException
+     */
+    public function getFilterRules($accountName)
+    {
+        $this->delegateAuth($accountName);
+        $rawResult = $this->request(
+            'GetFilterRules',
+            [],
+            [],
+            true
+        );
+
+        $rules = [];
+
+        if (array_key_exists('filterRules', $rawResult)) {
+            $rawFilterRules = $rawResult['filterRules']['filterRule'];
+
+            if (array_key_exists('@attributes', $rawFilterRules)) {
+                $rawFilterRules = [$rawFilterRules];
+            }
+
+            foreach ($rawFilterRules as $rawFilterRule) {
+                $rule = [
+                    'name' => $rawFilterRule['@attributes']['name'],
+                    'active' => (bool)$rawFilterRule['@attributes']['active'],
+                    'test_condition' => str_replace('of', '', $rawFilterRule['filterTests']['@attributes']['condition']),
+                    'tests' => [],
+                    'actions' => [],
+                ];
+
+                foreach ($rawFilterRule['filterTests'] as $testName => $rawTest) {
+                    if ($testName === '@attributes') {
+                        continue;
+                    }
+
+                    $rule['tests'][] = array_merge(
+                        [
+                            'test' => str_replace('Test', '', $testName),
+                        ],
+                        $rawTest['@attributes']
+                    );
+                }
+
+                foreach ($rawFilterRule['filterActions'] as $actionName => $rawAction) {
+                    $rule['actions'][] = array_merge(
+                        [
+                            'action' => lcfirst(str_replace('action', '', $actionName)),
+                        ],
+                        $rawAction['@attributes']
+                    );
+                }
+
+                $rules[] = $rule;
+            }
+        }
+
+        return $rules;
     }
 }
