@@ -68,7 +68,7 @@ class GetFilterRulesTest extends ZimbraConnectorTestCase
             [
                 'name' => 'Archive_Read',
                 'active' => true,
-                'test_condition' => 'anyof',
+                'test_condition' => 'any',
                 'tests' =>
                 [
                     [
@@ -84,6 +84,146 @@ class GetFilterRulesTest extends ZimbraConnectorTestCase
                         'action' => 'flag',
                         'flagName' => 'read',
                         'index' => '0'
+                    ]
+                ]
+            ]
+        ], $rules);
+    }
+
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function formatsAnyResponseFromZimbra()
+    {
+        $xmlResponse = '
+      <GetFilterRulesResponse xmlns="urn:zimbraMail">
+        <filterRules>
+          <filterRule name="Forward some stuff" active="1">
+            <filterTests condition="anyof">
+              <headerTest stringComparison="contains" header="subject" index="0" value="[forward.me]"/>
+            </filterTests>
+            <filterActions>
+              <actionRedirect a="foo@bar.com" index="0" copy="0"/>
+              <actionStop index="1"/>
+            </filterActions>
+          </filterRule>
+          <filterRule name="Some message body" active="1">
+            <filterTests condition="anyof">
+              <bodyTest index="0" value="Some text"/>
+            </filterTests>
+            <filterActions>
+              <actionDiscard index="0"/>
+              <actionStop index="1"/>
+            </filterActions>
+          </filterRule>
+          <filterRule name="Some compound rule" active="1">
+            <filterTests condition="allof">
+              <addressTest stringComparison="contains" part="all" header="from" index="0" value="foo@bar.com"/>
+              <headerTest stringComparison="contains" header="X-Zimbra-DL" index="1" value="bar@bar.com"/>
+              <bodyTest index="2" value="some text"/>
+            </filterTests>
+            <filterActions>
+              <actionDiscard index="0"/>
+              <actionStop index="1"/>
+            </filterActions>
+          </filterRule>
+        </filterRules>
+      </GetFilterRulesResponse>';
+
+        $response = new Response(
+            $this->httpOkHeaders.$this->soapHeaders.$xmlResponse.$this->soapFooters
+        );
+
+        $this->client->shouldReceive('post')->andReturn($response);
+
+        $rules = $this->connector->getFilterRules(null);
+        $this->assertEquals([
+            [
+                'name' => 'Forward some stuff',
+                'active' => true,
+                'test_condition' => 'any',
+                'tests' =>
+                    [
+                        [
+                            'test' => 'header',
+                            'stringComparison' => 'contains',
+                            'header' => 'subject',
+                            'index' => '0',
+                            'value' => '[forward.me]'
+                        ]
+                    ],
+                'actions' => [
+                    [
+                        'action' => 'redirect',
+                        'a' => 'foo@bar.com',
+                        'index' => '0',
+                        'copy' => '0'
+                    ],
+                    [
+                        'action' => 'stop',
+                        'index' => '1'
+                    ]
+                ]
+            ],
+            [
+                'name' => 'Some message body',
+                'active' => true,
+                'test_condition' => 'any',
+                'tests' =>
+                    [
+                        [
+                            'test' => 'body',
+                            'index' => '0',
+                            'value' => 'Some text'
+                        ]
+                    ],
+                'actions' => [
+                    [
+                        'action' => 'discard',
+                        'index' => '0'
+                    ],
+                    [
+                        'action' => 'stop',
+                        'index' => '1'
+                    ]
+                ]
+            ],
+            [
+                'name' => 'Some compound rule',
+                'active' => true,
+                'test_condition' => 'all',
+                'tests' =>
+                    [
+                        [
+                            'test' => 'address',
+                            'stringComparison' => 'contains',
+                            'part' => 'all',
+                            'header' => 'from',
+                            'index' => '0',
+                            'value' => 'foo@bar.com'
+                        ],
+                        [
+                            'test' => 'header',
+                            'stringComparison' => 'contains',
+                            'header' => 'X-Zimbra-DL',
+                            'index' => '1',
+                            'value' => 'bar@bar.com'
+                        ],
+                        [
+                            'test' => 'body',
+                            'index' => '2',
+                            'value' => 'some text'
+                        ]
+                    ],
+                'actions' => [
+                    [
+                        'action' => 'discard',
+                        'index' => '0'
+                    ],
+                    [
+                        'action' => 'stop',
+                        'index' => '1'
                     ]
                 ]
             ]
