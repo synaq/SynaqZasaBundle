@@ -116,6 +116,13 @@ class ZimbraConnector
         } catch (SoapFaultException $e) {
             if ($e->getMessage() == 'Zimbra Soap Fault: auth credentials have expired' && $retryOnExpiredAuth) {
                 $this->login();
+
+                if ($delegate) {
+                    $authAccount = $this->delegatedAuthAccount;
+                    $this->delegatedAuthAccount = false;
+                    $this->delegateAuth($authAccount);
+                }
+
                 $response = $this->request($requestType, $attributes, $parameters, $delegate, $delegateType, false);
             } else {
 
