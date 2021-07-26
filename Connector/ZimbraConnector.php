@@ -65,6 +65,10 @@ class ZimbraConnector
      * @var null
      */
     private $restServerBaseUrl;
+    /**
+     * @var int
+     */
+    private $authRequestDelay;
 
     public function __construct(
         Wrapper $httpClient,
@@ -73,7 +77,8 @@ class ZimbraConnector
         $adminPass,
         $fopen = true,
         $sessionPath = null,
-        $restServerBaseUrl = null
+        $restServerBaseUrl = null,
+        $authRequestDelay = 0
     ) {
         $this->httpClient = $httpClient;
         $this->server = $server;
@@ -86,6 +91,7 @@ class ZimbraConnector
         if (!empty($this->sessionPath) && file_exists($this->sessionPath)) {
             $this->authToken = file_get_contents($this->sessionPath);
         }
+        $this->authRequestDelay = $authRequestDelay;
     }
 
     /**
@@ -306,6 +312,8 @@ class ZimbraConnector
         if (!empty($this->sessionPath)) {
             file_put_contents($this->sessionPath, $response['authToken']);
         }
+
+        $this->waitForAuthTokenPropagation();
     }
 
     public function countAccount($domain, $by = 'name')
@@ -885,6 +893,8 @@ class ZimbraConnector
 
             $this->delegatedAuthToken = $response['authToken'];
             $this->delegatedAuthAccount = $account;
+
+            $this->waitForAuthTokenPropagation();
 
             return $response;
         }
@@ -1674,5 +1684,10 @@ class ZimbraConnector
         }
 
         return $rules;
+    }
+
+    private function waitForAuthTokenPropagation()
+    {
+        sleep($this->authRequestDelay);
     }
 }
