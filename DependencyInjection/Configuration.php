@@ -40,6 +40,9 @@ class Configuration implements ConfigurationInterface
             ->scalarNode('rest_base_url')
             ->defaultNull()
             ->end()
+            ->scalarNode('auth_propagation_time')
+            ->defaultValue(0)
+            ->end()
             ->end();
 
         return $treeBuilder;
