@@ -43,6 +43,9 @@ class Configuration implements ConfigurationInterface
             ->scalarNode('auth_propagation_time')
             ->defaultValue(0)
             ->end()
+            ->scalarNode('ignore_delegated_auth')
+            ->defaultFalse()
+            ->end()
             ->end();
 
         return $treeBuilder;

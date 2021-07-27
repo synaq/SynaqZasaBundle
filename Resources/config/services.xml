@@ -11,6 +11,7 @@
         <parameter key="synaq_zasa.use_fopen"/>
         <parameter key="synaq_zasa.auth_token_path"/>
         <parameter key="synaq_zasa.auth_propagation_time"/>
+        <parameter key="synaq_zasa.ignore_delegated_auth"/>
     </parameters>
 
     <services>
@@ -23,6 +24,7 @@
             <argument>%synaq_zasa.auth_token_path%</argument>
             <argument>%synaq_zasa.rest_base_url%</argument>
             <argument>%synaq_zasa.auth_propagation_time%</argument>
+            <argument>%synaq_zasa.ignore_delegated_auth%</argument>
         </service>
     </services>
 </container>
