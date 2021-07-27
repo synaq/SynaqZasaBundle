@@ -55,5 +55,6 @@ class SynaqZasaExtension extends Extension
         $container->setParameter('synaq_zasa.auth_token_path', $config['auth_token_path']);
         $container->setParameter('synaq_zasa.rest_base_url', $config['rest_base_url']);
         $container->setParameter('synaq_zasa.auth_propagation_time', $config['auth_propagation_time']);
+        $container->setParameter('synaq_zasa.ignore_delegated_auth', $config['ignore_delegated_auth']);
     }
 }

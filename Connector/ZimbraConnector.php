@@ -69,6 +69,7 @@ class ZimbraConnector
      * @var int
      */
     private $authRequestDelay;
+    private $ignoreDelegatedAuth;
 
     public function __construct(
         Wrapper $httpClient,
@@ -78,7 +79,8 @@ class ZimbraConnector
         $fopen = true,
         $sessionPath = null,
         $restServerBaseUrl = null,
-        $authRequestDelay = 0
+        $authRequestDelay = 0,
+        $ignoreDelegatedAuth = false
     ) {
         $this->httpClient = $httpClient;
         $this->server = $server;
@@ -87,11 +89,12 @@ class ZimbraConnector
         $this->fopen = $fopen;
         $this->sessionPath = $sessionPath;
         $this->restServerBaseUrl = $restServerBaseUrl;
+        $this->authRequestDelay = $authRequestDelay;
+        $this->ignoreDelegatedAuth = $ignoreDelegatedAuth;
 
         if (!empty($this->sessionPath) && file_exists($this->sessionPath)) {
             $this->authToken = file_get_contents($this->sessionPath);
         }
-        $this->authRequestDelay = $authRequestDelay;
     }
 
     /**
@@ -877,6 +880,11 @@ class ZimbraConnector
 
     public function delegateAuth($account)
     {
+        if ($this->ignoreDelegatedAuth) {
+
+            return false;
+        }
+
         if ($this->delegatedAuthAccount != $account) {
             $response = $this->request(
                 'DelegateAuth',
