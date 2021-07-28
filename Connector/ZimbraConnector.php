@@ -881,6 +881,8 @@ class ZimbraConnector
     public function delegateAuth($account)
     {
         if ($this->ignoreDelegatedAuth) {
+            $this->delegatedAuthToken = $this->authToken;
+            $this->delegatedAuthAccount = $account;
 
             return false;
         }
