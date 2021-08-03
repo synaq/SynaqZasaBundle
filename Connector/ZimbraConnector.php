@@ -1006,9 +1006,9 @@ class ZimbraConnector
         return $response;
     }
 
-    public function getFolders($accountName)
+    public function getFolders($accountName, $ignoreDelegatedAuth = false)
     {
-        $this->delegateAuth($accountName);
+        $this->delegateAuth($accountName, $ignoreDelegatedAuth);
 
         $response = $this->request('GetFolder', array(), array(), true);
 
