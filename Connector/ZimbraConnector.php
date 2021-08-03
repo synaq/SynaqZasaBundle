@@ -878,9 +878,9 @@ class ZimbraConnector
         return $response;
     }
 
-    public function delegateAuth($account)
+    public function delegateAuth($account, $ignoreForThisRequest = false)
     {
-        if ($this->ignoreDelegatedAuth) {
+        if ($this->ignoreDelegatedAuth or $ignoreForThisRequest) {
             $this->delegatedAuthToken = $this->authToken;
             $this->delegatedAuthAccount = $account;
 
@@ -986,9 +986,9 @@ class ZimbraConnector
         return $response;
     }
 
-    public function getFolder($account, $folderId)
+    public function getFolder($account, $folderId, $ignoreDelegatedAuth = false)
     {
-        $this->delegateAuth($account);
+        $this->delegateAuth($account, $ignoreDelegatedAuth);
 
         $response = $this->request(
             'GetFolder',
