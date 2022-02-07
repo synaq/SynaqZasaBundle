@@ -25,6 +25,16 @@ class GetAccountMembershipTest extends ZimbraConnectorTestCase
         $this->client->shouldHaveReceived('post')->with(m::any(), '/<GetAccountMembershipRequest xmlns="urn:zimbraAdmin">.*<account by="id">some-account-id<\/account>.*<\/GetAccountMembershipRequest>/s', m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function acceptsAnyGivenId()
+    {
+        $this->connector->getAccountMembership('any-account-id');
+        $this->client->shouldHaveReceived('post')->with(m::any(), '/<GetAccountMembershipRequest xmlns="urn:zimbraAdmin">.*<account by="id">any-account-id<\/account>.*<\/GetAccountMembershipRequest>/s', m::any(), m::any(), m::any());
+    }
+
     protected function setUp()
     {
         parent::setUp();
