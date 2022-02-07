@@ -1700,4 +1700,23 @@ class ZimbraConnector
     {
         sleep($this->authRequestDelay);
     }
+
+    /**
+     * @throws SoapFaultException
+     */
+    public function getAccountMembership($accountId)
+    {
+        $response = $this->request(
+            'GetAccountMembership',
+            array(),
+            array(
+                'account' => array(
+                    '@attributes' => array(
+                        'by' => 'id',
+                    ),
+                    '@value' => 'some-account-id',
+                ),
+            )
+        );
+    }
 }
