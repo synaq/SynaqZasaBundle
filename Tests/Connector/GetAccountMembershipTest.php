@@ -35,6 +35,35 @@ class GetAccountMembershipTest extends ZimbraConnectorTestCase
         $this->client->shouldHaveReceived('post')->with(m::any(), '/<GetAccountMembershipRequest xmlns="urn:zimbraAdmin">.*<account by="id">any-account-id<\/account>.*<\/GetAccountMembershipRequest>/s', m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function returnsAnArrayWithTheListOfDls()
+    {
+        $getAccountMembershipSoapResponse =
+            <<<'XML'
+<GetAccountMembershipResponse xmlns="urn:zimbraAdmin">
+  <dl name="foo@bar.com" dynamic="0" id="some-id"/>
+  <dl name="bar@bar.com" dynamic="0" id="some-other-id" via="foo@bar.com"/>
+</GetAccountMembershipResponse>
+XML;
+
+        $this->zimbraReturnsResponse($getAccountMembershipSoapResponse);
+        $result = $this->connector->getAccountMembership('any-account-id');
+        $this->assertEquals([
+            [
+                'name' => 'foo@bar.com',
+                'id' => 'some-id'
+            ],
+            [
+                'name' => 'bar@bar.com',
+                'id' => 'some-other-id',
+                'via' => 'foo@bar.com'
+            ]
+        ], $result);
+    }
+
     protected function setUp()
     {
         parent::setUp();
@@ -43,7 +72,7 @@ class GetAccountMembershipTest extends ZimbraConnectorTestCase
             <<<'XML'
 <GetAccountMembershipResponse xmlns="urn:zimbraAdmin">
   <dl name="foo@bar.com" dynamic="0" id="some-id"/>
-  <dl name="bar@bar.com" dynamic="0" id="some-other-id" via="bar@bar.com"/>
+  <dl name="bar@bar.com" dynamic="0" id="some-other-id" via="foo@bar.com"/>
 </GetAccountMembershipResponse>
 XML;
 
@@ -54,5 +83,17 @@ XML;
         $this->client->shouldReceive('post')->andReturn($getAccountMembershipResponse)->byDefault();
 
         $this->connector = new ZimbraConnector($this->client, null, null, null, true, __DIR__ . '/Fixtures/token');
+    }
+
+    /**
+     * @param $getAccountMembershipSoapResponse
+     */
+    private function zimbraReturnsResponse($getAccountMembershipSoapResponse)
+    {
+        $getAccountMembershipResponse = new Response(
+            $this->httpOkHeaders . $this->soapHeaders . $getAccountMembershipSoapResponse . $this->soapFooters
+        );
+
+        $this->client->shouldReceive('post')->andReturn($getAccountMembershipResponse);
     }
 }

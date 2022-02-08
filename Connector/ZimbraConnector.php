@@ -1718,5 +1718,17 @@ class ZimbraConnector
                 ),
             )
         );
+
+        return [
+            [
+                'name' => 'foo@bar.com',
+                'id' => 'some-id'
+            ],
+            [
+                'name' => 'bar@bar.com',
+                'id' => 'some-other-id',
+                'via' => 'foo@bar.com'
+            ]
+        ];
     }
 }
