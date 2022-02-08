@@ -1700,4 +1700,44 @@ class ZimbraConnector
     {
         sleep($this->authRequestDelay);
     }
+
+    /**
+     * @throws SoapFaultException
+     */
+    public function getAccountMembership($accountId)
+    {
+        $response = $this->request(
+            'GetAccountMembership',
+            array(),
+            array(
+                'account' => array(
+                    '@attributes' => array(
+                        'by' => 'id',
+                    ),
+                    '@value' => $accountId,
+                ),
+            )
+        );
+
+        return $this->dlMembershipResultFromResponse($response);
+    }
+
+    /**
+     * @param $response
+     * @return array
+     */
+    private function dlMembershipResultFromResponse($response)
+    {
+        $result = [];
+
+        if (!empty($response)) {
+            $dls = (array_key_exists('@attributes', $response['dl']) ? [$response['dl']] : $response['dl']);
+
+            foreach ($dls as $dl) {
+                $result[] = $dl['@attributes'];
+            }
+        }
+
+        return $result;
+    }
 }
