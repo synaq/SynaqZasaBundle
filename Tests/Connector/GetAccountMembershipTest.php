@@ -54,12 +54,38 @@ XML;
         $this->assertEquals([
             [
                 'name' => 'foo@bar.com',
+                'dynamic' => 0,
                 'id' => 'some-id'
             ],
             [
                 'name' => 'bar@bar.com',
+                'dynamic' => 0,
                 'id' => 'some-other-id',
                 'via' => 'foo@bar.com'
+            ]
+        ], $result);
+    }
+
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function acceptsAnyListOfDlsFromZimbra()
+    {
+        $getAccountMembershipSoapResponse =
+            <<<'XML'
+<GetAccountMembershipResponse xmlns="urn:zimbraAdmin">
+  <dl name="bar@bar.com" dynamic="0" id="some-other-id"/>
+</GetAccountMembershipResponse>
+XML;
+
+        $this->zimbraReturnsResponse($getAccountMembershipSoapResponse);
+        $result = $this->connector->getAccountMembership('any-account-id');
+        $this->assertEquals([
+            [
+                'name' => 'bar@bar.com',
+                'dynamic' => 0,
+                'id' => 'some-other-id'
             ]
         ], $result);
     }

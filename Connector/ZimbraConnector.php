@@ -1719,16 +1719,13 @@ class ZimbraConnector
             )
         );
 
-        return [
-            [
-                'name' => 'foo@bar.com',
-                'id' => 'some-id'
-            ],
-            [
-                'name' => 'bar@bar.com',
-                'id' => 'some-other-id',
-                'via' => 'foo@bar.com'
-            ]
-        ];
+        $result = [];
+        $dls = (array_key_exists('@attributes', $response['dl']) ? [$response['dl']] : $response['dl']);
+
+        foreach ($dls as $dl) {
+            $result[] = $dl['@attributes'];
+        }
+
+        return $result;
     }
 }
