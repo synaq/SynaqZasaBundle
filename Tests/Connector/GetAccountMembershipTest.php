@@ -90,6 +90,22 @@ XML;
         ], $result);
     }
 
+    /**
+     * @test
+     * @throws SoapFaultException
+     */
+    public function correctlyHandlesEmptyResponseFromZimbra()
+    {
+        $getAccountMembershipSoapResponse =
+            <<<'XML'
+<GetAccountMembershipResponse xmlns="urn:zimbraAdmin"/>
+XML;
+
+        $this->zimbraReturnsResponse($getAccountMembershipSoapResponse);
+        $result = $this->connector->getAccountMembership('any-account-id');
+        $this->assertEquals([], $result);
+    }
+
     protected function setUp()
     {
         parent::setUp();

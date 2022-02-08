@@ -1719,11 +1719,23 @@ class ZimbraConnector
             )
         );
 
-        $result = [];
-        $dls = (array_key_exists('@attributes', $response['dl']) ? [$response['dl']] : $response['dl']);
+        return $this->dlMembershipResultFromResponse($response);
+    }
 
-        foreach ($dls as $dl) {
-            $result[] = $dl['@attributes'];
+    /**
+     * @param $response
+     * @return array
+     */
+    private function dlMembershipResultFromResponse($response)
+    {
+        $result = [];
+
+        if (!empty($response)) {
+            $dls = (array_key_exists('@attributes', $response['dl']) ? [$response['dl']] : $response['dl']);
+
+            foreach ($dls as $dl) {
+                $result[] = $dl['@attributes'];
+            }
         }
 
         return $result;
