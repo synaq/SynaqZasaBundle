@@ -25,6 +25,17 @@ class FlushCacheTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     */
+    public function acceptsAnyCombinationOfTypeAndFlags()
+    {
+        $this->connector->flushCache('zimlet', false, true, []);
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/<FlushCacheRequest xmlns="urn:zimbraAdmin">.*<cache allServers="0" type="zimlet" imapServers="1"\/>.*<\/FlushCacheRequest>/s', $body) === 1;
+        }), m::any(), m::any(), m::any());
+    }
+
     protected function setUp()
     {
         parent::setUp();

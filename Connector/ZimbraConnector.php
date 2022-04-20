@@ -1749,9 +1749,9 @@ class ZimbraConnector
             [
                 'cache' => [
                     '@attributes' => [
-                        'allServers' => 1,
-                        'type' => 'account',
-                        'imapServers' => 0
+                        'allServers' => (int) $allServers,
+                        'type' => $type,
+                        'imapServers' => (int) $imapServers
                     ]
                 ]
             ]
