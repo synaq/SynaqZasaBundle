@@ -36,6 +36,17 @@ class FlushCacheTest extends ZimbraConnectorTestCase
         }), m::any(), m::any(), m::any());
     }
 
+    /**
+     * @test
+     */
+    public function treatsListOfNamesAsEntriesByName()
+    {
+        $this->connector->flushCache('account', false, true, ['foo@bar.com']);
+        $this->client->shouldHaveReceived('post')->with(m::any(), m::on(function ($body) {
+            return preg_match('/<FlushCacheRequest xmlns="urn:zimbraAdmin">.*<cache allServers="0" type="account" imapServers="1">.*<entry by="name">foo@bar.com<\/entry>.*<\/FlushCacheRequest>/s', $body) === 1;
+        }), m::any(), m::any(), m::any());
+    }
+
     protected function setUp()
     {
         parent::setUp();

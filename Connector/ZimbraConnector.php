@@ -73,15 +73,16 @@ class ZimbraConnector
 
     public function __construct(
         Wrapper $httpClient,
-        $server,
-        $adminUser,
-        $adminPass,
-        $fopen = true,
-        $sessionPath = null,
-        $restServerBaseUrl = null,
-        $authRequestDelay = 0,
-        $ignoreDelegatedAuth = false
-    ) {
+                $server,
+                $adminUser,
+                $adminPass,
+                $fopen = true,
+                $sessionPath = null,
+                $restServerBaseUrl = null,
+                $authRequestDelay = 0,
+                $ignoreDelegatedAuth = false
+    )
+    {
         $this->httpClient = $httpClient;
         $this->server = $server;
         $this->adminUser = $adminUser;
@@ -114,14 +115,15 @@ class ZimbraConnector
         $delegate = false,
         $delegateType = 'Mail',
         $retryOnExpiredAuth = true
-    ) {
+    )
+    {
         try {
             if (!$this->login_init && !$this->authToken) {
                 $this->login();
             }
             $request = $this->buildRequest($requestType, $attributes, $parameters, $delegate, $delegateType);
             $response = $this->submitRequest($request);
-            $response = $response['soap:Envelope']['soap:Body'][$requestType.'Response'];
+            $response = $response['soap:Envelope']['soap:Body'][$requestType . 'Response'];
         } catch (SoapFaultException $e) {
             if ($e->getMessage() == 'Zimbra Soap Fault: auth credentials have expired' && $retryOnExpiredAuth) {
                 $this->login();
@@ -189,7 +191,7 @@ class ZimbraConnector
         if (array_key_exists('soap:Fault', $responseArray['soap:Envelope']['soap:Body'])) {
 
             throw new SoapFaultException(
-                'Zimbra Soap Fault: '.$responseArray['soap:Envelope']['soap:Body']['soap:Fault']['soap:Reason']['soap:Text']
+                'Zimbra Soap Fault: ' . $responseArray['soap:Envelope']['soap:Body']['soap:Fault']['soap:Reason']['soap:Text']
             );
         }
     }
@@ -207,12 +209,12 @@ class ZimbraConnector
         $header = $this->buildRequestHeaders($delegate);
 
         if ($delegate) {
-            $attributes['xmlns'] = 'urn:zimbra'.$delegateType;
+            $attributes['xmlns'] = 'urn:zimbra' . $delegateType;
         } else {
             $attributes['xmlns'] = 'urn:zimbraAdmin';
         }
 
-        $body[$request.'Request'] = array_merge(array('@attributes' => $attributes), $parameters);
+        $body[$request . 'Request'] = array_merge(array('@attributes' => $attributes), $parameters);
 
         $message = array(
             '@attributes' => array(
@@ -1118,7 +1120,7 @@ class ZimbraConnector
             }
         }
 
-        return $used.'/'.$quota;
+        return $used . '/' . $quota;
     }
 
     public function getFolderByName($accountName, $folderName)
@@ -1169,7 +1171,7 @@ class ZimbraConnector
             $contactsFolder = $this->getFolderByName($accountName, 'Contacts');
             if (!$contactsFolder) {
 
-                throw new SoapFaultException('Contacts folder not found on '.$accountName);
+                throw new SoapFaultException('Contacts folder not found on ' . $accountName);
             }
             $contactsFolderId = $contactsFolder['@attributes']['id'];
         } else {
@@ -1499,7 +1501,8 @@ class ZimbraConnector
         $displayName,
         $calendarResourceType = 'Location',
         array $otherAttributes = []
-    ) {
+    )
+    {
         return $this->request(
             'CreateCalendarResource',
             ['name' => $name, 'password' => $password],
@@ -1743,17 +1746,34 @@ class ZimbraConnector
 
     public function flushCache($type, $allServers = false, $imapServers = true, array $names = [])
     {
+        $entries = [];
+
+        foreach ($names as $name) {
+            $entries[] = [
+                '@attributes' => [
+                    'by' => 'name'
+                ],
+                '@value' => $name
+            ];
+        }
+
+        $cacheSpec = [
+            '@attributes' => [
+                'allServers' => (int)$allServers,
+                'type' => $type,
+                'imapServers' => (int)$imapServers
+            ]
+        ];
+
+        if (!empty($entries)) {
+            $cacheSpec['entry'] = $entries;
+        }
+
         return $this->request(
             'FlushCache',
             [],
             [
-                'cache' => [
-                    '@attributes' => [
-                        'allServers' => (int) $allServers,
-                        'type' => $type,
-                        'imapServers' => (int) $imapServers
-                    ]
-                ]
+                'cache' => $cacheSpec
             ]
         );
     }
