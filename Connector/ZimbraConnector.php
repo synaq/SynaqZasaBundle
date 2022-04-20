@@ -1740,4 +1740,21 @@ class ZimbraConnector
 
         return $result;
     }
+
+    public function flushCache($type, $allServers = false, $imapServers = true, array $names = [])
+    {
+        return $this->request(
+            'FlushCache',
+            [],
+            [
+                'cache' => [
+                    '@attributes' => [
+                        'allServers' => 1,
+                        'type' => 'account',
+                        'imapServers' => 0
+                    ]
+                ]
+            ]
+        );
+    }
 }
