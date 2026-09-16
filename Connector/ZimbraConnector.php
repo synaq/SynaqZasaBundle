@@ -1421,6 +1421,9 @@ class ZimbraConnector
     {
         $account = array();
         $account['id'] = $response['account']['@attributes']['id'];
+        if (array_key_exists('name', $response['account']['@attributes'])) {
+            $account['name'] = $response['account']['@attributes']['name'];
+        }
         foreach ($response['account']['a'] as $a) {
             $attributeName = $a['@attributes']['n'];
             $attributeValue = $a['@value'];
