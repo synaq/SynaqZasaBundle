@@ -38,6 +38,15 @@ class GetAccountTest extends ZimbraConnectorTestCase
         $this->assertEquals(array('address@domain.com', 'alias1@domain.com'), $accountDetails['mail']);
     }
 
+    /**
+     * @test
+     */
+    public function shouldReturnTheAccountNameFromTheResponseAttributesAndNotTheFirstMailValue()
+    {
+        $accountDetails = $this->connector->getAccount('any@domain.com');
+        $this->assertEquals('willemv@synaq.com', $accountDetails['name']);
+    }
+
     protected function setUp()
     {
         parent::setUp();
